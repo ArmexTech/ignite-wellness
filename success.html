@@ -80,15 +80,8 @@
 </div>
 
 <script>
-// ---- Auth guard ----
-(function(){
-  try {
-    const p = JSON.parse(localStorage.getItem('ignite_profile') || sessionStorage.getItem('ignite_profile') || '{}');
-    // Allow access if they just purchased (has plan) or are authenticated
-    if (!p.authenticated && !p.plan) { location.replace('login.html'); }
-  } catch(e){ location.replace('login.html'); }
-})();
-
+// ---- Auth check (soft — user may be arriving from Stripe Checkout) ----
+// We don't hard-gate because Stripe redirects include session_id; webhook will activate the sub shortly.
 // Read plan from URL (?plan=1|3|12) or sessionStorage
 const params = new URLSearchParams(location.search);
 let plan = params.get('plan');

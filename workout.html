@@ -113,11 +113,12 @@
 
 <script>
 // ---- Auth guard ----
-(function(){
+(async () => {
   try {
-    const p = JSON.parse(localStorage.getItem('ignite_profile') || sessionStorage.getItem('ignite_profile') || '{}');
-    if (!p.authenticated) { location.replace('login.html?next=workout.html'); }
-  } catch(e){ location.replace('login.html'); }
+    const r = await fetch('/api/me', { credentials:'include' });
+    const d = await r.json();
+    if (!d.user || !d.user.authenticated) { location.replace('login.html?next=workout.html'); }
+  } catch(e){ location.replace('login.html?next=workout.html'); }
 })();
 
 // ---- Workout definition ----
@@ -314,13 +315,19 @@ function finish(){
   renderComplete();
 }
 
-function saveAndExit(){
+async function saveAndExit(){
   try {
-    const prev = JSON.parse(sessionStorage.getItem('ignite_profile')||'{}');
-    const now = Date.now();
-    const completed = (prev.completedWorkouts||0) + 1;
-    sessionStorage.setItem('ignite_profile', JSON.stringify({...prev, completedWorkouts: completed, lastWorkoutAt: now}));
-  } catch(e){}
+    await fetch('/api/workouts/complete', {
+      method:'POST',
+      credentials:'include',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        workoutName: workout.title,
+        durationSeconds: actualActiveSec,
+        exercisesCompleted: workout.exercises.length,
+      }),
+    });
+  } catch(e){ console.error('save workout', e); }
   window.location.href = 'app.html';
 }
 

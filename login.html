@@ -63,18 +63,14 @@
       <button type="button" data-mode="signup">Create account</button>
     </div>
 
-    <div class="demo-banner" id="demoBanner">
-      <strong>🧪 Demo mode</strong> — Any email/password works. Try <code>test@ignite.fit</code> / <code>testpass123</code>.
-    </div>
-
     <form class="form" id="authForm" novalidate>
       <div>
         <label for="email">Email</label>
-        <input id="email" name="email" type="email" autocomplete="email" required placeholder="you@email.com" value="test@ignite.fit" />
+        <input id="email" name="email" type="email" autocomplete="email" required placeholder="you@email.com" />
       </div>
       <div>
         <label for="password">Password</label>
-        <input id="password" name="password" type="password" autocomplete="current-password" required minlength="8" placeholder="••••••••" value="testpass123" />
+        <input id="password" name="password" type="password" autocomplete="current-password" required minlength="8" placeholder="At least 8 characters" />
       </div>
       <div class="row" id="signinRow">
         <label class="checkbox"><input type="checkbox" id="remember" checked /> <span>Keep me signed in</span></label>
@@ -136,34 +132,66 @@ function setMode(mode){
 }
 tabs.forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
 
-form.addEventListener('submit', e => {
+let currentMode = 'signin';
+tabs.forEach(b => b.addEventListener('click', () => { currentMode = b.dataset.mode; }));
+
+form.addEventListener('submit', async e => {
   e.preventDefault();
-  // DEMO MODE: any email+password (min 8 chars) works.
-  // In production: replace with a fetch to /api/auth/signin that returns a session cookie.
   const email = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value;
   if(!email) { document.getElementById('email').focus(); return; }
   if(!password || password.length < 8) { alert('Password must be at least 8 characters.'); return; }
+  if(currentMode === 'signup' && !document.getElementById('terms').checked) {
+    alert('Please accept the Terms and Privacy Policy.'); return;
+  }
 
-  // Merge with any existing quiz answers (so a signed-up user keeps their plan)
-  let existing = {};
-  try { existing = JSON.parse(localStorage.getItem('ignite_profile') || sessionStorage.getItem('ignite_profile') || '{}'); } catch(e){}
+  submitBtn.disabled = true;
+  submitBtn.textContent = currentMode==='signup' ? 'Creating account…' : 'Signing in…';
 
-  const session = {
-    ...existing,
-    email,
-    authenticated: true,
-    paid: true,         // demo: test accounts have an active 3-month sub
-    plan: existing.plan || '3',
-    loggedInAt: Date.now(),
-  };
-  try { localStorage.setItem('ignite_profile', JSON.stringify(session)); } catch(e){}
-  try { sessionStorage.removeItem('ignite_profile'); } catch(e){}
+  try {
+    const endpoint = currentMode==='signup' ? '/api/auth/signup' : '/api/auth/signin';
+    const resp = await fetch(endpoint, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ email, password }),
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) {
+      const msgs = {
+        invalid_credentials: 'That email or password doesn\'t match.',
+        email_taken: 'That email is already registered. Try signing in instead.',
+        invalid_input: 'Check your email and password (min 8 chars).',
+        rate_limited: 'Too many attempts. Wait a minute and try again.',
+      };
+      alert(msgs[data.error] || 'Something went wrong. Please try again.');
+      submitBtn.disabled = false;
+      submitBtn.textContent = currentMode==='signup' ? 'Create account' : 'Sign in';
+      return;
+    }
+    // Sync any in-progress quiz answers
+    try {
+      const existing = JSON.parse(sessionStorage.getItem('ignite_profile') || 'null');
+      if (existing && existing.goal) {
+        await fetch('/api/quiz', {
+          method: 'POST',
+          credentials: 'include',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify(existing),
+        });
+        sessionStorage.removeItem('ignite_profile');
+      }
+    } catch(e){}
 
-  // Respect ?next=target if present
-  const params = new URLSearchParams(location.search);
-  const next = params.get('next');
-  window.location.href = (next && /^[a-z0-9.-]+\.html$/i.test(next)) ? next : 'app.html';
+    const params = new URLSearchParams(location.search);
+    const next = params.get('next');
+    window.location.href = (next && /^[a-z0-9.-]+\.html$/i.test(next)) ? next : 'app.html';
+  } catch (e) {
+    console.error(e);
+    alert('Network error. Please try again.');
+    submitBtn.disabled = false;
+    submitBtn.textContent = currentMode==='signup' ? 'Create account' : 'Sign in';
+  }
 });
 
 function ssoStub(provider){

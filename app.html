@@ -380,7 +380,7 @@
 
       <div class="prof">
         <a href="index.html"><span class="ic">🏠</span><span class="t">Back to IGNITE home</span><span class="arr">›</span></a>
-        <a href="login.html" onclick="try{localStorage.removeItem('ignite_profile');sessionStorage.removeItem('ignite_profile')}catch(e){}"><span class="ic">👋</span><span class="t">Sign out</span><span class="arr">›</span></a>
+        <a href="login.html" id="signOutLink"><span class="ic">👋</span><span class="t">Sign out</span><span class="arr">›</span></a>
       </div>
     </div>
   </section>
@@ -419,15 +419,21 @@
 <div class="saved-toast" id="savedToast">✓ Saved</div>
 
 <script>
-(() => {
-  // ---------- Auth guard ----------
-  // Checks for a profile with authenticated:true. Falls back to sessionStorage for quiz-flow continuity.
+(async () => {
+  // ---------- Auth guard (server-backed) ----------
   let profile = {};
+  let settingsFromServer = {};
   try {
-    const raw = localStorage.getItem('ignite_profile') || sessionStorage.getItem('ignite_profile') || '{}';
-    profile = JSON.parse(raw);
-  } catch(e){ profile = {}; }
-  if (!profile.authenticated) {
+    const r = await fetch('/api/me', { credentials: 'include' });
+    const d = await r.json();
+    if (!d.user || !d.user.authenticated) {
+      location.replace('login.html?next=app.html');
+      return;
+    }
+    profile = { ...(d.quiz || {}), ...d.user };
+    settingsFromServer = d.settings || {};
+  } catch(e) {
+    console.error('auth check failed', e);
     location.replace('login.html?next=app.html');
     return;
   }
@@ -638,11 +644,20 @@
   const setSave = document.getElementById('setSave');
   const savedToast = document.getElementById('savedToast');
 
-  function loadSettings(){
-    try { return JSON.parse(sessionStorage.getItem('ignite_settings') || '{}'); } catch(e){ return {}; }
-  }
+  // In-memory settings cache, synced from server on load, persisted on save
+  let settingsCache = { ...settingsFromServer };
+  function loadSettings(){ return settingsCache; }
   function saveSettings(obj){
-    try { sessionStorage.setItem('ignite_settings', JSON.stringify({...loadSettings(), ...obj})); } catch(e){}
+    settingsCache = { ...settingsCache, ...obj };
+    // fire-and-forget persist
+    fetch('/api/settings', {
+      method: 'POST',
+      credentials: 'include',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ settings: settingsCache }),
+    }).catch(e => console.error('save settings', e));
+    // fallback cache (for refresh resilience)
+    try { localStorage.setItem('ignite_settings_cache', JSON.stringify(settingsCache)); } catch(e){}
   }
   function toast(msg){
     savedToast.textContent = msg || '✓ Saved';
@@ -877,6 +892,15 @@
   // Wire profile buttons
   document.querySelectorAll('[data-setting]').forEach(btn => {
     btn.addEventListener('click', () => openSetting(btn.dataset.setting));
+  });
+  // Wire sign out
+  document.getElementById('signOutLink')?.addEventListener('click', async e => {
+    e.preventDefault();
+    try {
+      await fetch('/api/auth/signout', { method:'POST', credentials:'include' });
+      try { localStorage.removeItem('ignite_profile'); sessionStorage.removeItem('ignite_profile'); } catch(err){}
+    } catch(err){}
+    location.href = 'login.html';
   });
   // Close on backdrop click
   setModal.addEventListener('click', e => { if(e.target === setModal) closeSet(); });

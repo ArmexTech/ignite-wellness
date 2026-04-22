@@ -604,6 +604,11 @@
       </div>
     </div>
 
+    <div class="field" style="margin-top:16px;padding-top:22px" id="pwField">
+      <span class="label">Create a password</span>
+      <input id="pwInput" type="password" autocomplete="new-password" minlength="8" placeholder="At least 8 characters" style="font-size:16px; font-weight:600" />
+    </div>
+
     <button class="primary inline-cta" id="checkoutBtn" disabled>Select a plan to continue</button>
     <div class="fineprint" style="text-align:center;color:var(--muted);font-size:11px;margin-top:8px;padding-bottom:20px">
       By continuing you agree to our Terms &amp; Privacy Policy.
@@ -922,21 +927,69 @@
   // auto-select 3-month popular
   setTimeout(()=>{ const p = document.querySelector('.plan.popular'); if(p) p.click(); }, 0);
 
-  document.getElementById('checkoutBtn').addEventListener('click', ()=>{
+  document.getElementById('checkoutBtn').addEventListener('click', async ()=>{
     if(!selectedPlan) return;
-    // DEMO MODE: simulates a successful Stripe Checkout and creates an account using the email captured in the quiz.
-    // In production: POST to /api/create-checkout-session → redirect to Stripe hosted Checkout.
-    const payload = {
-      ...data,
-      plan: selectedPlan,
-      authenticated: true,   // user has just "created" an account + "paid"
-      paid: true,
-      purchased: true,
-      purchasedAt: Date.now(),
-    };
-    try { localStorage.setItem('ignite_profile', JSON.stringify(payload)); } catch(e){}
-    try { sessionStorage.removeItem('ignite_profile'); } catch(e){}
-    window.location.href = 'success.html?plan=' + encodeURIComponent(selectedPlan);
+    const btn = document.getElementById('checkoutBtn');
+    const password = document.getElementById('pwInput').value;
+    if (!password || password.length < 8) {
+      flash('Please create a password (min 8 characters)');
+      document.getElementById('pwInput').focus();
+      return;
+    }
+    if (!data.email) { flash('Missing email — go back a step.'); return; }
+    btn.disabled = true;
+    btn.textContent = 'Creating your account…';
+
+    try {
+      // 1. Signup (or signin if account exists)
+      let resp = await fetch('/api/auth/signup', {
+        method:'POST', credentials:'include',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ email: data.email, password }),
+      });
+      if (resp.status === 409) {
+        // Email taken — try signin with same password
+        resp = await fetch('/api/auth/signin', {
+          method:'POST', credentials:'include',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ email: data.email, password }),
+        });
+        if (!resp.ok) {
+          flash('That email is already registered — wrong password?');
+          btn.disabled = false; btn.textContent = 'Unlock my IGNITE plan →';
+          return;
+        }
+      } else if (!resp.ok) {
+        flash('Could not create account. Please try again.');
+        btn.disabled = false; btn.textContent = 'Unlock my IGNITE plan →';
+        return;
+      }
+
+      // 2. Save quiz answers server-side
+      await fetch('/api/quiz', {
+        method:'POST', credentials:'include',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(data),
+      });
+
+      // 3. Try Stripe Checkout
+      btn.textContent = 'Opening secure checkout…';
+      const co = await fetch('/api/checkout', {
+        method:'POST', credentials:'include',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ plan: selectedPlan }),
+      });
+      if (co.ok) {
+        const { url } = await co.json();
+        if (url) { window.location.href = url; return; }
+      }
+      // Stripe not configured yet — demo path
+      window.location.href = 'success.html?plan=' + encodeURIComponent(selectedPlan);
+    } catch (err) {
+      console.error(err);
+      flash('Network error — please try again.');
+      btn.disabled = false; btn.textContent = 'Unlock my IGNITE plan →';
+    }
   });
 
   render();

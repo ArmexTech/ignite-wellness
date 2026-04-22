@@ -1,15 +1,21 @@
 {
-    "name": "ignite-wellness",
-    "version": "1.0.0",
-    "description": "IGNITE — personalized women's wellness app",
-    "private": true,
-    "scripts": {
-          "start": "serve . -l tcp://0.0.0.0:${PORT:-3000} --no-clipboard"
-    },
-    "dependencies": {
-          "serve": "^14.2.3"
-    },
-    "engines": {
-          "node": ">=18"
-    }
+  "name": "ignite-wellness",
+  "version": "2.0.0",
+  "description": "IGNITE — personalized women's wellness app",
+  "private": true,
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.7",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.13.1",
+    "stripe": "^17.5.0",
+    "zod": "^3.24.1"
+  },
+  "engines": {
+    "node": ">=18"
+  }
 }
