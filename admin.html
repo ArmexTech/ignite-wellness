@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex,nofollow" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='72' font-size='80' text-anchor='middle'%3E🔧%3C/text%3E%3C/svg%3E" />
+<title>IGNITE Admin</title>
+<style>
+  :root{--bg:#0B0B1F;--bg-2:#14142E;--surface:#1A1A3A;--surface-hi:#232348;--line:#2B2B52;--text:#FFF;--muted:#A6A6C6;--pink:#FF2E7E;--orange:#FF7A3D;--yellow:#FFD23F;--mint:#00F0B5;--shadow:0 20px 60px rgba(255,46,126,.25);}
+  *{box-sizing:border-box}html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.5}
+  a{color:var(--pink);text-decoration:none}a:hover{text-decoration:underline}
+  button,input,select,textarea{font:inherit;color:inherit}
+  button{cursor:pointer;background:none;border:0}
+  .wrap{max-width:1120px;margin:0 auto;padding:24px}
+  header{display:flex;align-items:center;gap:16px;margin-bottom:20px}
+  .brand{font-weight:900;letter-spacing:.22em;font-size:16px;background:linear-gradient(90deg,var(--pink),var(--orange) 60%,var(--yellow));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .tag{background:var(--surface);color:var(--mint);padding:4px 10px;border-radius:999px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:800}
+  h1{font-size:28px;letter-spacing:-.02em;margin:0;font-weight:900}
+  .row{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+  .btn{padding:10px 14px;border-radius:10px;font-weight:700;font-size:13px;background:var(--surface);border:1px solid var(--line)}
+  .btn:hover{background:var(--surface-hi)}
+  .btn.primary{background:linear-gradient(135deg,var(--pink),var(--orange) 70%,var(--yellow));color:#0B0B1F;border:0;font-weight:900;box-shadow:var(--shadow)}
+  .btn.ghost{background:transparent}
+  .status{margin-left:auto;font-size:13px;color:var(--muted)}
+  .auth{max-width:420px;margin:120px auto;padding:28px;background:var(--surface);border:1px solid var(--line);border-radius:22px}
+  .auth h2{margin:0 0 10px;font-size:22px}
+  .auth p{margin:0 0 18px;color:var(--muted);font-size:14px}
+  .auth input{width:100%;padding:12px 14px;background:var(--bg-2);border:2px solid var(--line);border-radius:12px;color:#fff;font-size:15px;margin-bottom:12px}
+  .auth input:focus{border-color:var(--pink);outline:none}
+  .hidden{display:none!important}
+  table{width:100%;border-collapse:collapse;background:var(--surface);border-radius:14px;overflow:hidden;border:1px solid var(--line)}
+  th,td{padding:12px 14px;text-align:left;font-size:13px;border-bottom:1px solid var(--line)}
+  th{background:var(--bg-2);color:var(--muted);letter-spacing:.1em;text-transform:uppercase;font-size:11px;font-weight:800}
+  tr:last-child td{border-bottom:0}
+  tr:hover td{background:rgba(255,46,126,.04)}
+  .chip{display:inline-block;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.04em}
+  .chip.ok{background:rgba(0,240,181,.15);color:var(--mint)}
+  .chip.no{background:rgba(255,46,126,.12);color:var(--pink)}
+  .modal{position:fixed;inset:0;background:rgba(11,11,31,.8);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:20;padding:20px}
+  .modal.show{display:flex}
+  .card{width:100%;max-width:520px;background:var(--bg-2);border:1px solid var(--line);border-radius:18px;padding:24px;max-height:90vh;overflow-y:auto}
+  .card h3{margin:0 0 6px;font-size:18px}
+  .card .sub{color:var(--muted);font-size:13px;margin-bottom:16px}
+  label{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:800;margin-bottom:4px}
+  .field{margin-bottom:14px}
+  .field input,.field select,.field textarea{width:100%;padding:10px 12px;background:var(--surface);border:2px solid var(--line);border-radius:10px;color:#fff;font-size:14px}
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--pink);outline:none}
+  .field textarea{min-height:80px;resize:vertical;font-family:inherit}
+  .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#14142E;border:1px solid var(--mint);color:var(--mint);padding:10px 16px;border-radius:12px;font-size:13px;font-weight:700;z-index:30;opacity:0;transition:opacity .2s;pointer-events:none}
+  .toast.show{opacity:1}
+  .toast.err{border-color:#FF5E7E;color:#FF5E7E}
+  video{width:100%;border-radius:10px;margin-top:8px;background:#000}
+  .thumb{width:80px;height:45px;border-radius:6px;object-fit:cover;background:var(--bg-2);display:inline-block;vertical-align:middle}
+</style>
+</head>
+<body>
+<div class="wrap" id="page" style="display:none">
+  <header>
+    <span class="brand">IGNITE</span><span class="tag">Admin</span>
+    <div class="status" id="status"></div>
+    <button class="btn ghost" onclick="signOut()">Sign out</button>
+  </header>
+  <h1>Exercise library</h1>
+  <p style="color:var(--muted);margin:6px 0 16px">Manage exercises and their demo videos. Paste a URL (MP4/HLS/.m3u8) or a Mux/Bunny playback ID.</p>
+
+  <div class="row">
+    <button class="btn primary" onclick="openExerciseModal()">+ New exercise</button>
+    <button class="btn" onclick="reseed()">Re-run seed</button>
+    <button class="btn" onclick="refresh()">Refresh</button>
+    <input id="filter" placeholder="Filter by name or slug…" style="flex:1;max-width:320px;padding:10px 14px;background:var(--surface);border:1px solid var(--line);border-radius:10px;color:#fff;font-size:14px"/>
+  </div>
+
+  <table>
+    <thead>
+      <tr><th>Name</th><th>Slug</th><th>Difficulty</th><th>Equipment</th><th>Video</th><th>Actions</th></tr>
+    </thead>
+    <tbody id="tbody"><tr><td colspan="6" style="text-align:center;color:var(--muted)">Loading…</td></tr></tbody>
+  </table>
+</div>
+
+<!-- AUTH PANEL -->
+<div id="authPanel" class="auth">
+  <div style="text-align:center;margin-bottom:14px"><span class="brand">IGNITE</span> <span class="tag">Admin</span></div>
+  <h2>Enter admin token</h2>
+  <p>Paste your ADMIN_TOKEN (from Railway env vars).</p>
+  <input id="tokenInput" type="password" placeholder="ADMIN_TOKEN" autocomplete="off" />
+  <button class="btn primary" style="width:100%" onclick="tryAuth()">Sign in</button>
+  <div id="authError" style="color:#FF5E7E;font-size:13px;margin-top:10px;text-align:center;display:none">Invalid token.</div>
+</div>
+
+<!-- EXERCISE MODAL -->
+<div class="modal" id="exerciseModal">
+  <div class="card">
+    <h3 id="exTitle">New exercise</h3>
+    <div class="sub">Slug is the URL-friendly key. Keep it lowercase, hyphens only.</div>
+    <div class="fgrid">
+      <div class="field"><label>Name</label><input id="ex-name" /></div>
+      <div class="field"><label>Slug</label><input id="ex-slug" /></div>
+      <div class="field"><label>Emoji</label><input id="ex-emoji" placeholder="🍑" /></div>
+      <div class="field"><label>Difficulty</label><select id="ex-difficulty"><option value="">—</option><option>beginner</option><option>intermediate</option><option>advanced</option></select></div>
+    </div>
+    <div class="field"><label>Description</label><textarea id="ex-description"></textarea></div>
+    <div class="field"><label>Form cues (one per line)</label><textarea id="ex-form-cues" placeholder="Feet flat, hip-width&#10;Squeeze glutes at the top"></textarea></div>
+    <div class="fgrid">
+      <div class="field"><label>Muscle groups (comma-separated)</label><input id="ex-muscle-groups" placeholder="glutes, hamstrings" /></div>
+      <div class="field"><label>Equipment (comma-separated)</label><input id="ex-equipment" placeholder="none or dumbbells, bench" /></div>
+    </div>
+    <div class="row">
+      <button class="btn" onclick="closeModal('exerciseModal')">Cancel</button>
+      <button class="btn primary" onclick="saveExercise()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- VIDEO MODAL -->
+<div class="modal" id="videoModal">
+  <div class="card">
+    <h3 id="videoTitle">Video</h3>
+    <div class="sub" id="videoSub"></div>
+    <div class="field"><label>Variation</label><select id="v-variation"><option value="default">Default</option><option value="modified">Modified (beginner)</option><option value="advanced">Advanced</option></select></div>
+    <div class="field"><label>Provider</label>
+      <select id="v-provider">
+        <option value="url">Direct URL (MP4 / HLS .m3u8)</option>
+        <option value="mux">Mux playback ID</option>
+        <option value="bunny">Bunny Stream playback ID</option>
+        <option value="youtube">YouTube (video ID — demo only)</option>
+      </select>
+    </div>
+    <div class="field" id="v-url-field"><label>Video URL</label><input id="v-url" placeholder="https://stream.mux.com/....m3u8 or https://.../demo.mp4" /></div>
+    <div class="field hidden" id="v-playback-field"><label>Playback ID</label><input id="v-playback" /></div>
+    <div class="field"><label>Thumbnail URL (optional)</label><input id="v-thumb" placeholder="Auto for Mux" /></div>
+    <div class="field"><label>Duration in seconds (optional)</label><input id="v-duration" type="number" /></div>
+    <div class="field"><label>Preview</label><video id="v-preview" controls playsinline></video></div>
+    <div class="row">
+      <button class="btn" onclick="closeModal('videoModal')">Cancel</button>
+      <button class="btn ghost" style="color:#FF5E7E" onclick="deleteVideo()">Delete</button>
+      <button class="btn primary" onclick="saveVideo()">Save video</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.15/dist/hls.min.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+let token = null;
+let exerciseForVideo = null;
+let exerciseBeingEdited = null;
+let exercisesCache = [];
+
+function toast(msg, err){
+  const t = $('toast'); t.textContent = msg;
+  t.classList.toggle('err', !!err); t.classList.add('show');
+  clearTimeout(toast._t); toast._t = setTimeout(()=>t.classList.remove('show'), 2000);
+}
+function closeModal(id){ $(id).classList.remove('show'); }
+
+// ---- Auth ----
+function loadToken(){ try { return localStorage.getItem('ignite_admin_token') || null; } catch { return null; } }
+function saveToken(t){ try { localStorage.setItem('ignite_admin_token', t); } catch {} }
+function signOut(){ try { localStorage.removeItem('ignite_admin_token'); } catch {} location.reload(); }
+
+async function api(path, opts = {}){
+  const r = await fetch(path, {
+    ...opts,
+    headers: { ...(opts.headers||{}), 'x-admin-token': token, 'Content-Type': 'application/json' }
+  });
+  if (r.status === 403) { signOut(); throw new Error('forbidden'); }
+  return r;
+}
+async function tryAuth(){
+  const t = $('tokenInput').value.trim();
+  if (!t) return;
+  // Probe /api/admin/exercises (GET) with this token
+  const r = await fetch('/api/admin/exercises', { headers: { 'x-admin-token': t } });
+  if (r.status === 403) { $('authError').style.display = 'block'; return; }
+  if (r.ok) { token = t; saveToken(t); $('authPanel').style.display = 'none'; $('page').style.display = 'block'; refresh(); }
+  else { $('authError').style.display = 'block'; $('authError').textContent = 'Request failed ('+r.status+')'; }
+}
+
+// ---- Exercises list ----
+async function refresh(){
+  try {
+    const r = await api('/api/admin/exercises');
+    const d = await r.json();
+    exercisesCache = d.exercises || [];
+    render();
+    $('status').textContent = `${exercisesCache.length} exercises · ${exercisesCache.filter(x=>x.video_count>0).length} with video`;
+  } catch (e) { console.error(e); toast('Load failed', true); }
+}
+function render(){
+  const f = ($('filter').value || '').toLowerCase();
+  const list = exercisesCache.filter(e => !f || (e.name+e.slug).toLowerCase().includes(f));
+  const rows = list.map(e => `
+    <tr data-slug="${e.slug}">
+      <td>${e.emoji || '·'} <strong>${e.name}</strong></td>
+      <td><code>${e.slug}</code></td>
+      <td>${e.difficulty || '—'}</td>
+      <td>${(e.equipment||[]).join(', ') || '—'}</td>
+      <td>${e.video_count > 0 ? '<span class="chip ok">✓ '+e.video_count+'</span>' : '<span class="chip no">No video</span>'}</td>
+      <td>
+        <button class="btn" onclick="openVideoModal('${e.slug}','${e.name.replace(/'/g,"\\'")}')">🎬 Video</button>
+        <button class="btn ghost" onclick="editExercise('${e.slug}')">Edit</button>
+      </td>
+    </tr>`).join('');
+  $('tbody').innerHTML = rows || '<tr><td colspan="6" style="text-align:center;color:var(--muted)">No exercises match.</td></tr>';
+}
+$('filter').addEventListener('input', render);
+
+// ---- Exercise CRUD ----
+function openExerciseModal(){
+  exerciseBeingEdited = null;
+  $('exTitle').textContent = 'New exercise';
+  ['name','slug','emoji','description','form-cues','muscle-groups','equipment'].forEach(f => $('ex-'+f).value = '');
+  $('ex-difficulty').value = '';
+  $('exerciseModal').classList.add('show');
+}
+function editExercise(slug){
+  const e = exercisesCache.find(x => x.slug === slug);
+  if (!e) return;
+  exerciseBeingEdited = slug;
+  $('exTitle').textContent = 'Edit ' + e.name;
+  $('ex-name').value = e.name;
+  $('ex-slug').value = e.slug;
+  $('ex-emoji').value = e.emoji || '';
+  $('ex-description').value = e.description || '';
+  $('ex-form-cues').value = (e.form_cues || []).join('\n');
+  $('ex-muscle-groups').value = (e.muscle_groups || []).join(', ');
+  $('ex-equipment').value = (e.equipment || []).join(', ');
+  $('ex-difficulty').value = e.difficulty || '';
+  $('exerciseModal').classList.add('show');
+}
+async function saveExercise(){
+  const body = {
+    name: $('ex-name').value.trim(),
+    slug: $('ex-slug').value.trim().toLowerCase().replace(/\s+/g,'-'),
+    emoji: $('ex-emoji').value.trim() || null,
+    difficulty: $('ex-difficulty').value || null,
+    description: $('ex-description').value.trim() || null,
+    form_cues: $('ex-form-cues').value.split('\n').map(s=>s.trim()).filter(Boolean),
+    muscle_groups: $('ex-muscle-groups').value.split(',').map(s=>s.trim()).filter(Boolean),
+    equipment: $('ex-equipment').value.split(',').map(s=>s.trim()).filter(Boolean),
+  };
+  if (!body.name || !body.slug) return toast('Name and slug are required', true);
+  const r = await api('/api/admin/exercises', { method:'POST', body: JSON.stringify(body) });
+  if (r.ok) { closeModal('exerciseModal'); refresh(); toast('✓ Saved'); }
+  else { toast('Save failed', true); }
+}
+
+// ---- Videos ----
+function openVideoModal(slug, name){
+  exerciseForVideo = slug;
+  $('videoTitle').textContent = 'Video for ' + name;
+  $('videoSub').textContent = 'Paste a direct video URL, or a Mux/Bunny playback ID.';
+  $('v-variation').value = 'default';
+  $('v-provider').value = 'url';
+  $('v-url').value = ''; $('v-playback').value = ''; $('v-thumb').value = ''; $('v-duration').value = '';
+  toggleProviderFields();
+  resetPreview();
+  $('videoModal').classList.add('show');
+}
+$('v-provider').addEventListener('change', toggleProviderFields);
+$('v-url').addEventListener('input', previewVideo);
+$('v-playback').addEventListener('input', previewVideo);
+function toggleProviderFields(){
+  const p = $('v-provider').value;
+  $('v-url-field').classList.toggle('hidden', p !== 'url' && p !== 'youtube');
+  $('v-playback-field').classList.toggle('hidden', p !== 'mux' && p !== 'bunny');
+}
+function resolvePreviewUrl(){
+  const p = $('v-provider').value;
+  if (p === 'url') return $('v-url').value.trim();
+  if (p === 'mux' && $('v-playback').value) return `https://stream.mux.com/${$('v-playback').value.trim()}.m3u8`;
+  return null;
+}
+let hls = null;
+function resetPreview(){
+  const v = $('v-preview');
+  if (hls) { hls.destroy(); hls = null; }
+  v.removeAttribute('src'); v.load();
+}
+function previewVideo(){
+  const url = resolvePreviewUrl();
+  const v = $('v-preview');
+  resetPreview();
+  if (!url) return;
+  const isHls = /\.m3u8(\?|$)/i.test(url);
+  if (isHls && !v.canPlayType('application/vnd.apple.mpegurl') && window.Hls && Hls.isSupported()) {
+    hls = new Hls(); hls.loadSource(url); hls.attachMedia(v);
+  } else {
+    v.src = url;
+  }
+}
+async function saveVideo(){
+  const body = {
+    exercise_slug: exerciseForVideo,
+    variation: $('v-variation').value,
+    provider: $('v-provider').value,
+    video_url: $('v-url').value.trim() || null,
+    playback_id: $('v-playback').value.trim() || null,
+    thumbnail_url: $('v-thumb').value.trim() || null,
+    duration_seconds: $('v-duration').value ? +$('v-duration').value : null,
+  };
+  if (!body.video_url && !body.playback_id) return toast('URL or playback ID required', true);
+  const r = await api('/api/admin/exercise-videos', { method:'POST', body: JSON.stringify(body) });
+  if (r.ok) { closeModal('videoModal'); refresh(); toast('✓ Video saved'); }
+  else { toast('Save failed', true); }
+}
+async function deleteVideo(){
+  if (!confirm('Delete this video?')) return;
+  const r = await api('/api/admin/exercise-videos', {
+    method:'DELETE',
+    body: JSON.stringify({ exercise_slug: exerciseForVideo, variation: $('v-variation').value })
+  });
+  if (r.ok) { closeModal('videoModal'); refresh(); toast('✓ Video deleted'); }
+  else { toast('Delete failed', true); }
+}
+
+async function reseed(){
+  if (!confirm('Re-run the seed? This will upsert exercises and workouts from seed.json.')) return;
+  const r = await api('/api/admin/reseed', { method:'POST' });
+  if (r.ok) { refresh(); toast('✓ Seeded'); }
+  else { toast('Seed failed', true); }
+}
+
+// Boot
+(() => {
+  token = loadToken();
+  if (token) {
+    $('authPanel').style.display = 'none';
+    $('page').style.display = 'block';
+    refresh();
+  } else {
+    $('authPanel').style.display = 'block';
+    $('tokenInput').focus();
+  }
+})();
+</script>
+</body>
+</html>

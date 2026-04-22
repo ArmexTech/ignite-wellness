@@ -38,6 +38,51 @@ async function runMigrations(){
   console.log('Migrations applied.');
 }
 
+async function seedContent(){
+  const seedPath = path.join(__dirname, 'content', 'seed.json');
+  if (!fs.existsSync(seedPath)) { console.log('No seed.json found, skipping seed.'); return; }
+  const seed = JSON.parse(fs.readFileSync(seedPath, 'utf8'));
+
+  // Upsert exercises
+  for (const e of (seed.exercises || [])) {
+    await pool.query(
+      `INSERT INTO exercises (slug, name, emoji, description, form_cues, muscle_groups, difficulty, equipment, updated_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8, NOW())
+       ON CONFLICT (slug) DO UPDATE SET
+         name = EXCLUDED.name, emoji = EXCLUDED.emoji, description = EXCLUDED.description,
+         form_cues = EXCLUDED.form_cues, muscle_groups = EXCLUDED.muscle_groups,
+         difficulty = EXCLUDED.difficulty, equipment = EXCLUDED.equipment, updated_at = NOW()`,
+      [e.slug, e.name, e.emoji || null, e.description || null,
+       e.form_cues || null, e.muscle_groups || null, e.difficulty || null, e.equipment || null]);
+  }
+  // Upsert workouts + their exercise refs
+  for (const w of (seed.workouts || [])) {
+    const { rows } = await pool.query(
+      `INSERT INTO workouts (slug, name, focus, duration_minutes, difficulty, description, rest_seconds, updated_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7, NOW())
+       ON CONFLICT (slug) DO UPDATE SET
+         name = EXCLUDED.name, focus = EXCLUDED.focus, duration_minutes = EXCLUDED.duration_minutes,
+         difficulty = EXCLUDED.difficulty, description = EXCLUDED.description,
+         rest_seconds = EXCLUDED.rest_seconds, updated_at = NOW()
+       RETURNING id`,
+      [w.slug, w.name, w.focus || null, w.duration_minutes || null,
+       w.difficulty || null, w.description || null, w.rest_seconds || 20]);
+    const workoutId = rows[0].id;
+    await pool.query(`DELETE FROM workout_exercises WHERE workout_id = $1`, [workoutId]);
+    let pos = 1;
+    for (const we of (w.exercises || [])) {
+      const er = await pool.query(`SELECT id FROM exercises WHERE slug = $1`, [we.slug]);
+      if (!er.rows.length) { console.warn('seed: missing exercise', we.slug); continue; }
+      await pool.query(
+        `INSERT INTO workout_exercises (workout_id, position, exercise_id, mode, sets, reps, duration_seconds, rest_seconds, tip)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+        [workoutId, pos++, er.rows[0].id, we.mode || 'reps', we.sets || null,
+         we.reps || null, we.duration_seconds || null, we.rest_seconds || null, we.tip || null]);
+    }
+  }
+  console.log(`Seeded ${seed.exercises?.length || 0} exercises, ${seed.workouts?.length || 0} workouts.`);
+}
+
 // ---------- Express ----------
 const app = express();
 app.disable('x-powered-by');
@@ -324,6 +369,164 @@ app.get('/api/progress', requireAuth, async (req, res) => {
          FROM workout_logs WHERE user_id = $1`, [req.userId]);
     res.json({ recent, ...counts[0] });
   } catch (e) { console.error('progress', e); res.status(500).json({ error: 'server_error' }); }
+});
+
+// =================================================================
+//  WORKOUT / EXERCISE CONTENT
+// =================================================================
+
+function streamUrlFromVideo(v){
+  if (!v) return null;
+  if (v.provider === 'mux' && v.playback_id) return `https://stream.mux.com/${v.playback_id}.m3u8`;
+  if (v.provider === 'bunny' && v.playback_id) return `https://iframe.mediadelivery.net/embed/${v.playback_id}`;
+  return v.video_url || null;
+}
+function thumbUrlFromVideo(v){
+  if (!v) return null;
+  if (v.thumbnail_url) return v.thumbnail_url;
+  if (v.provider === 'mux' && v.playback_id) return `https://image.mux.com/${v.playback_id}/thumbnail.webp?width=640&height=360&fit_mode=smartcrop`;
+  return null;
+}
+
+app.get('/api/workouts', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT slug, name, focus, duration_minutes, difficulty, description FROM workouts ORDER BY name`);
+    res.json({ workouts: rows });
+  } catch (e) { console.error(e); res.status(500).json({ error: 'server_error' }); }
+});
+
+app.get('/api/workouts/:slug', async (req, res) => {
+  try {
+    const { rows: wrows } = await pool.query(
+      `SELECT * FROM workouts WHERE slug = $1 LIMIT 1`, [req.params.slug]);
+    if (!wrows.length) return res.status(404).json({ error: 'not_found' });
+    const w = wrows[0];
+    const { rows: exs } = await pool.query(`
+      SELECT we.position, we.mode, we.sets, we.reps, we.duration_seconds, we.rest_seconds, we.tip,
+             e.slug, e.name, e.emoji, e.description, e.form_cues, e.muscle_groups, e.difficulty, e.equipment
+        FROM workout_exercises we
+        JOIN exercises e ON e.id = we.exercise_id
+       WHERE we.workout_id = $1
+       ORDER BY we.position
+    `, [w.id]);
+    // Fetch videos for all exercises at once
+    const slugs = exs.map(x => x.slug);
+    const { rows: videos } = slugs.length ? await pool.query(`
+      SELECT e.slug, v.variation, v.provider, v.video_url, v.playback_id, v.thumbnail_url, v.duration_seconds
+        FROM exercise_videos v
+        JOIN exercises e ON e.id = v.exercise_id
+       WHERE e.slug = ANY($1::text[])
+    `, [slugs]) : { rows: [] };
+    const videosBySlug = {};
+    for (const v of videos) {
+      (videosBySlug[v.slug] ||= {})[v.variation] = {
+        provider: v.provider,
+        streamUrl: streamUrlFromVideo(v),
+        thumbnailUrl: thumbUrlFromVideo(v),
+        duration: v.duration_seconds,
+      };
+    }
+    res.json({
+      slug: w.slug, name: w.name, focus: w.focus,
+      durationMinutes: w.duration_minutes, difficulty: w.difficulty,
+      description: w.description, restSeconds: w.rest_seconds,
+      exercises: exs.map(x => ({
+        ...x,
+        videos: videosBySlug[x.slug] || {},
+      })),
+    });
+  } catch (e) { console.error(e); res.status(500).json({ error: 'server_error' }); }
+});
+
+app.get('/api/workouts/today/for-me', requireAuth, async (req, res) => {
+  // Simple personalization: pick by user's primary focus; fall back to glute-sculpt
+  try {
+    const { rows: qrows } = await pool.query(
+      `SELECT focus FROM quiz_responses WHERE user_id = $1`, [req.userId]);
+    const focus = qrows[0]?.focus?.[0];
+    const focusToSlug = { butt: 'glute-sculpt', belly: 'core-ignition', legs: 'full-body-hiit' };
+    const slug = focusToSlug[focus] || 'glute-sculpt';
+    res.json({ slug });
+  } catch (e) { console.error(e); res.json({ slug: 'glute-sculpt' }); }
+});
+
+// ---------- Admin: manage content (ADMIN_TOKEN required) ----------
+function requireAdmin(req, res, next){
+  const t = req.headers['x-admin-token'];
+  if (!t || !process.env.ADMIN_TOKEN || t !== process.env.ADMIN_TOKEN) {
+    return res.status(403).json({ error: 'forbidden' });
+  }
+  next();
+}
+
+app.get('/api/admin/exercises', requireAdmin, async (req, res) => {
+  const { rows } = await pool.query(`
+    SELECT e.*, (
+      SELECT COUNT(*)::int FROM exercise_videos v WHERE v.exercise_id = e.id
+    ) AS video_count
+    FROM exercises e ORDER BY e.name`);
+  res.json({ exercises: rows });
+});
+
+app.post('/api/admin/exercises', requireAdmin, async (req, res) => {
+  const b = req.body || {};
+  if (!b.slug || !b.name) return res.status(400).json({ error: 'slug_and_name_required' });
+  try {
+    const { rows } = await pool.query(
+      `INSERT INTO exercises (slug, name, emoji, description, form_cues, muscle_groups, difficulty, equipment, updated_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8, NOW())
+       ON CONFLICT (slug) DO UPDATE SET
+         name = EXCLUDED.name, emoji = EXCLUDED.emoji, description = EXCLUDED.description,
+         form_cues = EXCLUDED.form_cues, muscle_groups = EXCLUDED.muscle_groups,
+         difficulty = EXCLUDED.difficulty, equipment = EXCLUDED.equipment, updated_at = NOW()
+       RETURNING id, slug`,
+      [b.slug, b.name, b.emoji || null, b.description || null,
+       Array.isArray(b.form_cues) ? b.form_cues : null,
+       Array.isArray(b.muscle_groups) ? b.muscle_groups : null,
+       b.difficulty || null,
+       Array.isArray(b.equipment) ? b.equipment : null]);
+    res.json({ ok: true, exercise: rows[0] });
+  } catch (e) { console.error(e); res.status(500).json({ error: 'server_error' }); }
+});
+
+app.post('/api/admin/exercise-videos', requireAdmin, async (req, res) => {
+  const b = req.body || {};
+  if (!b.exercise_slug) return res.status(400).json({ error: 'exercise_slug_required' });
+  if (!b.video_url && !b.playback_id) return res.status(400).json({ error: 'url_or_playback_id_required' });
+  try {
+    const er = await pool.query(`SELECT id FROM exercises WHERE slug = $1`, [b.exercise_slug]);
+    if (!er.rows.length) return res.status(404).json({ error: 'exercise_not_found' });
+    const exerciseId = er.rows[0].id;
+    const variation = b.variation || 'default';
+    const { rows } = await pool.query(
+      `INSERT INTO exercise_videos (exercise_id, variation, provider, video_url, playback_id, thumbnail_url, duration_seconds)
+       VALUES ($1,$2,$3,$4,$5,$6,$7)
+       ON CONFLICT (exercise_id, variation) DO UPDATE SET
+         provider = EXCLUDED.provider, video_url = EXCLUDED.video_url, playback_id = EXCLUDED.playback_id,
+         thumbnail_url = EXCLUDED.thumbnail_url, duration_seconds = EXCLUDED.duration_seconds
+       RETURNING *`,
+      [exerciseId, variation, b.provider || 'url', b.video_url || null,
+       b.playback_id || null, b.thumbnail_url || null, b.duration_seconds || null]);
+    res.json({ ok: true, video: rows[0] });
+  } catch (e) { console.error(e); res.status(500).json({ error: 'server_error' }); }
+});
+
+app.delete('/api/admin/exercise-videos', requireAdmin, async (req, res) => {
+  const { exercise_slug, variation = 'default' } = req.body || {};
+  if (!exercise_slug) return res.status(400).json({ error: 'exercise_slug_required' });
+  try {
+    await pool.query(`
+      DELETE FROM exercise_videos v USING exercises e
+       WHERE v.exercise_id = e.id AND e.slug = $1 AND v.variation = $2
+    `, [exercise_slug, variation]);
+    res.json({ ok: true });
+  } catch (e) { console.error(e); res.status(500).json({ error: 'server_error' }); }
+});
+
+app.post('/api/admin/reseed', requireAdmin, async (req, res) => {
+  try { await seedContent(); res.json({ ok: true }); }
+  catch (e) { console.error(e); res.status(500).json({ error: 'server_error' }); }
 });
 
 // =================================================================
@@ -676,6 +879,7 @@ function scheduleJobs(){
 (async () => {
   try {
     await runMigrations();
+    try { await seedContent(); } catch (e) { console.error('Seed failed (non-fatal):', e.message); }
     scheduleJobs();
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`IGNITE server listening on :${PORT}`);

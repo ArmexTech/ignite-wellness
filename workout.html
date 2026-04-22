@@ -6,7 +6,10 @@
 <meta name="description" content="Your IGNITE workout — follow along, exercise by exercise." />
 <meta name="robots" content="noindex,nofollow" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='72' font-size='80' text-anchor='middle'%3E🔥%3C/text%3E%3C/svg%3E" />
+<link rel="manifest" href="/manifest.json" />
+<meta name="theme-color" content="#0B0B1F" />
 <title>Workout — IGNITE</title>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.15/dist/hls.min.js" defer></script>
 <style>
   :root{--bg:#0B0B1F;--bg-2:#14142E;--surface:#1A1A3A;--surface-hi:#232348;--line:#2B2B52;--text:#FFF;--muted:#A6A6C6;--pink:#FF2E7E;--orange:#FF7A3D;--yellow:#FFD23F;--mint:#00F0B5;--shadow:0 20px 60px rgba(255,46,126,.25);}
   *{box-sizing:border-box}html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
@@ -41,6 +44,8 @@
   .visual::before{content:"";position:absolute;inset:-20%;background:conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,.15) 30%, transparent 60%);animation:rot 8s linear infinite;mix-blend-mode:overlay;pointer-events:none}
   @keyframes rot{to{transform:rotate(360deg)}}
   .visual .emoji{font-size:92px;position:relative;z-index:1}
+  .exercise-video{width:100%;max-width:360px;margin:0 auto;border-radius:20px;overflow:hidden;background:#000;box-shadow:0 20px 60px rgba(255,46,126,.25);aspect-ratio:16/9}
+  .exercise-video video{width:100%;height:100%;object-fit:cover;display:block}
 
   .timer-ring{width:220px;height:220px;margin:0 auto;position:relative}
   .timer-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
@@ -112,31 +117,79 @@
 </div>
 
 <script>
-// ---- Auth guard ----
-(async () => {
-  try {
-    const r = await fetch('/api/me', { credentials:'include' });
-    const d = await r.json();
-    if (!d.user || !d.user.authenticated) { location.replace('login.html?next=workout.html'); }
-  } catch(e){ location.replace('login.html?next=workout.html'); }
-})();
-
-// ---- Workout definition ----
-// In a real app this comes from the server based on quiz answers.
-const workout = {
-  title: 'Glute Sculpt · 30 min',
-  exercises: [
-    { name: 'Warm-up: hip openers', emoji: '🧘‍♀️', mode: 'time', seconds: 60, reps: null, tip: 'Breathe slow and easy. Mobilize through full range.' },
-    { name: 'Glute bridge',          emoji: '🍑', mode: 'reps', seconds: null, reps: '3 × 12', tip: 'Squeeze at the top. Keep knees tracking over ankles.' },
-    { name: 'Romanian deadlift',     emoji: '🏋️‍♀️', mode: 'reps', seconds: null, reps: '3 × 10', tip: 'Hinge at the hips, flat back, bar close to legs.' },
-    { name: 'Bulgarian split squat', emoji: '🦵', mode: 'reps', seconds: null, reps: '3 × 8 each', tip: 'Front knee tracks over toes. Drive through the heel.' },
-    { name: 'Hip thrust',            emoji: '💪', mode: 'reps', seconds: null, reps: '3 × 12', tip: 'Chin tucked, ribs down, glutes do the work.' },
-    { name: 'Curtsy lunge',          emoji: '🎯', mode: 'reps', seconds: null, reps: '3 × 10 each', tip: 'Cross back behind, drop straight down, press up through the front heel.' },
-    { name: 'Fire hydrant',          emoji: '🔥', mode: 'reps', seconds: null, reps: '3 × 15 each', tip: 'Core braced, hips square. Small, controlled lifts.' },
-    { name: 'Cool-down stretch',     emoji: '🌸', mode: 'time', seconds: 90, reps: null, tip: 'Breathe into each stretch for 30 seconds.' },
-  ],
+// ---- Workout loader (async) ----
+// Shape used by the rest of the player:
+//   workout = { title, restSeconds, exercises: [{ name, emoji, mode, seconds, reps, tip, video:{url,thumb} }] }
+let workout = {
+  title: 'Loading…',
   restSeconds: 20,
+  exercises: [{ name: 'Loading…', emoji: '⏳', mode: 'time', seconds: 3, tip: '' }],
 };
+
+async function bootWorkout(){
+  // Auth first
+  try {
+    const me = await fetch('/api/me', { credentials:'include' }).then(r=>r.json());
+    if (!me.user || !me.user.authenticated) { location.replace('login.html?next=workout.html'); return; }
+  } catch(e){ location.replace('login.html?next=workout.html'); return; }
+
+  // Resolve today's workout slug (personalized or default)
+  const params = new URLSearchParams(location.search);
+  let slug = params.get('w') || null;
+  if (!slug) {
+    try {
+      const t = await fetch('/api/workouts/today/for-me', { credentials:'include' }).then(r=>r.json());
+      slug = t?.slug || 'glute-sculpt';
+    } catch { slug = 'glute-sculpt'; }
+  }
+
+  // Fetch the workout + exercises + videos
+  let w;
+  try {
+    w = await fetch('/api/workouts/' + encodeURIComponent(slug)).then(r=>r.json());
+  } catch (e) { console.error('workout fetch failed', e); }
+  if (!w || !w.exercises) {
+    alert('Couldn\u2019t load your workout. Please try again.');
+    location.href = 'app.html'; return;
+  }
+
+  workout = {
+    title: `${w.name} · ${w.durationMinutes || 30} min`,
+    restSeconds: w.restSeconds || 20,
+    exercises: w.exercises.map(x => ({
+      name: x.name,
+      emoji: x.emoji || '💪',
+      mode: x.mode,
+      seconds: x.duration_seconds || null,
+      reps: x.reps || null,
+      tip: x.tip || (Array.isArray(x.form_cues) && x.form_cues[0]) || '',
+      video: x.videos?.default ? {
+        url: x.videos.default.streamUrl,
+        thumb: x.videos.default.thumbnailUrl,
+      } : null,
+    })),
+  };
+  titleEl.textContent = workout.title;
+  idx = 0; timeLeft = 0; actualActiveSec = 0; mode = 'idle';
+  renderActive();
+  updateProgress();
+}
+
+// ---- Video helper ----
+let currentHls = null;
+function attachVideoStream(videoEl, url){
+  if (currentHls) { try { currentHls.destroy(); } catch(e){} currentHls = null; }
+  if (!url) return;
+  const isHls = /\.m3u8(\?|$)/i.test(url);
+  if (isHls && !videoEl.canPlayType('application/vnd.apple.mpegurl') && window.Hls && Hls.isSupported()) {
+    currentHls = new Hls({ lowLatencyMode: true });
+    currentHls.loadSource(url);
+    currentHls.attachMedia(videoEl);
+  } else {
+    videoEl.src = url;
+  }
+  videoEl.play().catch(()=>{ /* autoplay may be blocked until interaction */ });
+}
 
 // ---- State ----
 let idx = 0;              // index into exercises
@@ -192,19 +245,23 @@ function renderExerciseList(currentIdx, upcomingMode){
 function renderActive(){
   const ex = workout.exercises[idx];
   const isTime = ex.mode === 'time';
+  const hasVideo = !!(ex.video && ex.video.url);
+  const videoBlock = hasVideo
+    ? `<div class="exercise-video"><video id="exVideo" playsinline muted loop autoplay preload="metadata"${ex.video.thumb ? ` poster="${ex.video.thumb}"` : ''}></video></div>`
+    : `<div class="visual"><span class="emoji">${ex.emoji}</span></div>`;
   const main_html = `
     <div class="exercise">
       <span class="phase-badge work">Exercise ${idx+1} of ${workout.exercises.length}</span>
       <h2 class="ex-name">${ex.name}</h2>
-      <p class="ex-meta">${isTime ? 'Hold / move for ' + fmt(ex.seconds) : ex.reps}</p>
-      ${isTime ? timerRing(ex.seconds, ex.seconds) : `
-        <div class="visual"><span class="emoji">${ex.emoji}</span></div>
-        <div class="reps-card"><div class="rep-v">${ex.reps}</div><div class="rep-l">Reps · sets</div></div>
-      `}
-      <div class="tips"><div class="ic">💡</div><div class="txt">${ex.tip}</div></div>
+      <p class="ex-meta">${isTime ? 'Hold / move for ' + fmt(ex.seconds) : (ex.reps || '')}</p>
+      ${videoBlock}
+      ${isTime ? timerRing(ex.seconds, ex.seconds) :
+        (ex.reps ? `<div class="reps-card"><div class="rep-v">${ex.reps}</div><div class="rep-l">Reps · sets</div></div>` : '')}
+      ${ex.tip ? `<div class="tips"><div class="ic">💡</div><div class="txt">${ex.tip}</div></div>` : ''}
     </div>
     ${renderExerciseList(idx)}`;
   main.innerHTML = main_html;
+  if (hasVideo) attachVideoStream(document.getElementById('exVideo'), ex.video.url);
   updateProgress();
   playBtn.innerHTML = isTime ? (mode==='active' ? '⏸ Pause' : '▶ Start timer') : '✓ Mark complete';
   prevBtn.disabled = idx === 0;
@@ -359,9 +416,8 @@ skipBtn.addEventListener('click', () => {
 });
 soundBtn.addEventListener('click', () => { soundOn = !soundOn; soundBtn.textContent = soundOn ? '🔊' : '🔇'; });
 
-// init
-renderActive();
-updateProgress();
+// init — fetch the workout, then render
+bootWorkout();
 </script>
 </body>
 </html>

@@ -86,3 +86,61 @@ CREATE TABLE IF NOT EXISTS email_events (
   meta JSONB
 );
 CREATE INDEX IF NOT EXISTS email_events_user_idx ON email_events (user_id, sent_at DESC);
+
+-- =================================================================
+-- Exercise & workout content
+-- =================================================================
+
+CREATE TABLE IF NOT EXISTS exercises (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  slug TEXT UNIQUE NOT NULL,
+  name TEXT NOT NULL,
+  emoji TEXT,
+  description TEXT,
+  form_cues TEXT[],
+  muscle_groups TEXT[],
+  difficulty TEXT,                 -- 'beginner' | 'intermediate' | 'advanced'
+  equipment TEXT[],                -- ['none'] or ['dumbbells','bench']
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS exercise_videos (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  exercise_id UUID NOT NULL REFERENCES exercises(id) ON DELETE CASCADE,
+  variation TEXT NOT NULL DEFAULT 'default',  -- 'default' | 'modified' | 'advanced'
+  provider TEXT NOT NULL DEFAULT 'url',       -- 'url' | 'mux' | 'youtube' | 'bunny'
+  video_url TEXT,                             -- MP4/HLS URL (provider=url) or full HLS
+  playback_id TEXT,                           -- Mux/Bunny playback ID
+  thumbnail_url TEXT,
+  duration_seconds INT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(exercise_id, variation)
+);
+
+CREATE TABLE IF NOT EXISTS workouts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  slug TEXT UNIQUE NOT NULL,
+  name TEXT NOT NULL,
+  focus TEXT,                     -- 'glutes' | 'core' | 'hiit' | ...
+  duration_minutes INT,
+  difficulty TEXT,
+  description TEXT,
+  rest_seconds INT NOT NULL DEFAULT 20,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS workout_exercises (
+  workout_id UUID NOT NULL REFERENCES workouts(id) ON DELETE CASCADE,
+  position INT NOT NULL,
+  exercise_id UUID NOT NULL REFERENCES exercises(id),
+  mode TEXT NOT NULL DEFAULT 'reps',   -- 'reps' | 'time'
+  sets INT,
+  reps TEXT,
+  duration_seconds INT,
+  rest_seconds INT,
+  tip TEXT,
+  PRIMARY KEY (workout_id, position)
+);
+CREATE INDEX IF NOT EXISTS workout_exercises_workout_idx ON workout_exercises (workout_id, position);

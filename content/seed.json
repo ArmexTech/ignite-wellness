@@ -1,0 +1,83 @@
+{
+  "exercises": [
+    { "slug": "hip-openers",       "name": "Hip openers",          "emoji": "🧘‍♀️", "difficulty": "beginner",    "muscle_groups": ["hips","mobility"],                  "equipment": ["none"],          "form_cues": ["Breathe slow and easy","Mobilize through full range","Keep your core engaged"], "description": "Gentle warm-up to open the hips and activate the glutes." },
+    { "slug": "glute-bridge",      "name": "Glute bridge",         "emoji": "🍑", "difficulty": "beginner",    "muscle_groups": ["glutes","hamstrings"],              "equipment": ["none"],          "form_cues": ["Feet flat, hip-width","Squeeze glutes at the top","Keep ribs tucked — don't arch your back"], "description": "Foundational glute activation — isolates the posterior chain." },
+    { "slug": "romanian-deadlift", "name": "Romanian deadlift",    "emoji": "🏋️‍♀️", "difficulty": "intermediate","muscle_groups": ["hamstrings","glutes","back"],       "equipment": ["dumbbells"],     "form_cues": ["Hinge at the hips, not the knees","Flat back throughout","Bar/weights close to your legs"], "description": "Hip-hinge pattern targeting hamstrings and glutes with a loaded stretch." },
+    { "slug": "bulgarian-split-squat","name":"Bulgarian split squat","emoji":"🦵","difficulty":"intermediate","muscle_groups":["quads","glutes"],                  "equipment":["bench"],          "form_cues":["Front knee tracks over toes","Drive through your heel","Keep torso tall"], "description": "Single-leg squat variation with the rear foot elevated — huge glute and quad builder." },
+    { "slug": "hip-thrust",        "name":"Hip thrust",            "emoji":"💪", "difficulty":"intermediate", "muscle_groups":["glutes"],                            "equipment":["bench"],          "form_cues":["Chin tucked, ribs down","Glutes do the work — not your lower back","Pause at the top"], "description": "Gold-standard glute builder — shoulders on bench, drive hips up." },
+    { "slug": "curtsy-lunge",      "name":"Curtsy lunge",          "emoji":"🎯", "difficulty":"beginner",     "muscle_groups":["glutes","inner thigh"],              "equipment":["none"],           "form_cues":["Cross back behind","Drop straight down","Press up through the front heel"], "description": "Targets the glute medius and inner thigh — great for shaping." },
+    { "slug": "fire-hydrant",      "name":"Fire hydrant",          "emoji":"🔥", "difficulty":"beginner",     "muscle_groups":["glute medius","core"],               "equipment":["none"],           "form_cues":["Core braced, hips square","Small, controlled lifts","Don't let your hip rotate"], "description": "Glute-medius isolation from an all-fours position." },
+    { "slug": "cool-down-stretch", "name":"Cool-down stretch",     "emoji":"🌸", "difficulty":"beginner",     "muscle_groups":["full body","mobility"],              "equipment":["none"],           "form_cues":["Breathe into each stretch for 30 seconds","Don't push into sharp pain","Relax and let go"], "description": "Guided stretch sequence to cool the body and lengthen worked muscles." },
+
+    { "slug": "squat",             "name":"Bodyweight squat",      "emoji":"🔻", "difficulty":"beginner",     "muscle_groups":["quads","glutes","core"],             "equipment":["none"],           "form_cues":["Feet shoulder-width, toes slightly out","Sit back and down","Chest up, knees track over toes"], "description": "The king of lower-body movements." },
+    { "slug": "push-up",           "name":"Push-up",               "emoji":"🫸", "difficulty":"intermediate", "muscle_groups":["chest","shoulders","triceps","core"],"equipment":["none"],           "form_cues":["Hands under shoulders","Body in one line","Lower chest to just above floor"], "description": "Full-body upper pushing movement. Modify on knees as needed." },
+    { "slug": "plank",             "name":"Forearm plank",         "emoji":"🧱", "difficulty":"beginner",     "muscle_groups":["core","shoulders"],                  "equipment":["none"],           "form_cues":["Elbows under shoulders","Squeeze glutes and core","Don't let hips sag"], "description": "Isometric core hold — the bedrock of core strength." },
+    { "slug": "bird-dog",          "name":"Bird-dog",              "emoji":"🐕", "difficulty":"beginner",     "muscle_groups":["core","back"],                       "equipment":["none"],           "form_cues":["Opposite arm and leg","Pause, don't rush","Brace the core — no wobbling"], "description": "Anti-rotation core + posterior chain activation." },
+    { "slug": "dead-bug",          "name":"Dead bug",              "emoji":"🐞", "difficulty":"beginner",     "muscle_groups":["core"],                              "equipment":["none"],           "form_cues":["Lower back pressed to the floor","Slow and controlled","Exhale as you lower"], "description": "Deep core stability from your back." },
+    { "slug": "mountain-climber",  "name":"Mountain climber",      "emoji":"⛰️", "difficulty":"intermediate", "muscle_groups":["core","cardio"],                     "equipment":["none"],           "form_cues":["Hands stacked under shoulders","Quick and controlled","Keep hips level"], "description": "Cardio + core in one. Great finisher." },
+    { "slug": "jumping-jacks",     "name":"Jumping jacks",         "emoji":"🤸", "difficulty":"beginner",     "muscle_groups":["cardio"],                            "equipment":["none"],           "form_cues":["Stay light on your feet","Full arm swings","Breathe with the rhythm"], "description": "Classic cardio warm-up." },
+    { "slug": "lunge",             "name":"Alternating lunge",     "emoji":"🚶‍♀️","difficulty":"beginner",    "muscle_groups":["quads","glutes"],                    "equipment":["none"],           "form_cues":["Step far enough forward","Back knee lightly kisses floor","Drive through the front heel"], "description": "Unilateral leg work with balance + stability." },
+    { "slug": "side-plank",        "name":"Side plank",            "emoji":"📐", "difficulty":"intermediate", "muscle_groups":["obliques","core"],                   "equipment":["none"],           "form_cues":["Stack feet or stagger","Push floor away","Squeeze your sides"], "description": "Lateral core strength and shoulder stability." },
+    { "slug": "kettlebell-swing",  "name":"Kettlebell swing",      "emoji":"🏋️", "difficulty":"intermediate", "muscle_groups":["glutes","hamstrings","back","core"], "equipment":["kettlebell"],     "form_cues":["It's a hip hinge, not a squat","Snap the hips at the top","Arms are ropes — relaxed"], "description": "Power-producing posterior-chain movement." },
+    { "slug": "dumbbell-row",      "name":"Bent-over row",         "emoji":"🎣", "difficulty":"intermediate", "muscle_groups":["back","biceps"],                     "equipment":["dumbbells"],      "form_cues":["Flat back, hinge forward","Pull to the ribs","Squeeze shoulder blades"], "description": "Back strength from a hinged position." },
+    { "slug": "glute-kickback",    "name":"Glute kickback",        "emoji":"🦵", "difficulty":"beginner",     "muscle_groups":["glutes"],                            "equipment":["none","bands"],   "form_cues":["Core braced","Lift from the glute, not the back","Controlled on the way down"], "description": "Pure glute isolation — great for shape." }
+  ],
+
+  "workouts": [
+    {
+      "slug": "glute-sculpt",
+      "name": "Glute sculpt",
+      "focus": "glutes",
+      "duration_minutes": 30,
+      "difficulty": "beginner",
+      "description": "Build and shape the glutes with a progressive sequence of activation, strength and finishers.",
+      "rest_seconds": 20,
+      "exercises": [
+        { "slug": "hip-openers",          "mode": "time", "duration_seconds": 60, "sets": 1 },
+        { "slug": "glute-bridge",         "mode": "reps", "sets": 3, "reps": "3 × 12" },
+        { "slug": "romanian-deadlift",    "mode": "reps", "sets": 3, "reps": "3 × 10" },
+        { "slug": "bulgarian-split-squat","mode": "reps", "sets": 3, "reps": "3 × 8 each" },
+        { "slug": "hip-thrust",           "mode": "reps", "sets": 3, "reps": "3 × 12" },
+        { "slug": "curtsy-lunge",         "mode": "reps", "sets": 3, "reps": "3 × 10 each" },
+        { "slug": "fire-hydrant",         "mode": "reps", "sets": 3, "reps": "3 × 15 each" },
+        { "slug": "cool-down-stretch",    "mode": "time", "duration_seconds": 90, "sets": 1 }
+      ]
+    },
+    {
+      "slug": "core-ignition",
+      "name": "Core ignition",
+      "focus": "core",
+      "duration_minutes": 20,
+      "difficulty": "beginner",
+      "description": "Fast 20-minute core flow — works rotational, anti-rotation, and classic ab strength.",
+      "rest_seconds": 15,
+      "exercises": [
+        { "slug": "hip-openers",     "mode": "time", "duration_seconds": 45, "sets": 1 },
+        { "slug": "dead-bug",        "mode": "reps", "sets": 3, "reps": "3 × 10 each" },
+        { "slug": "bird-dog",        "mode": "reps", "sets": 3, "reps": "3 × 10 each" },
+        { "slug": "plank",           "mode": "time", "duration_seconds": 45, "sets": 3 },
+        { "slug": "side-plank",      "mode": "time", "duration_seconds": 30, "sets": 2 },
+        { "slug": "mountain-climber","mode": "time", "duration_seconds": 30, "sets": 3 },
+        { "slug": "cool-down-stretch","mode":"time", "duration_seconds": 60, "sets": 1 }
+      ]
+    },
+    {
+      "slug": "full-body-hiit",
+      "name": "Full-body HIIT burn",
+      "focus": "hiit",
+      "duration_minutes": 25,
+      "difficulty": "intermediate",
+      "description": "Metabolic conditioning — short work intervals, short rests.",
+      "rest_seconds": 15,
+      "exercises": [
+        { "slug": "jumping-jacks",   "mode": "time", "duration_seconds": 45, "sets": 1 },
+        { "slug": "squat",           "mode": "time", "duration_seconds": 40, "sets": 3 },
+        { "slug": "push-up",         "mode": "time", "duration_seconds": 40, "sets": 3 },
+        { "slug": "lunge",           "mode": "time", "duration_seconds": 40, "sets": 3 },
+        { "slug": "mountain-climber","mode": "time", "duration_seconds": 40, "sets": 3 },
+        { "slug": "plank",           "mode": "time", "duration_seconds": 45, "sets": 2 },
+        { "slug": "cool-down-stretch","mode":"time", "duration_seconds": 90, "sets": 1 }
+      ]
+    }
+  ]
+}
