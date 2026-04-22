@@ -924,12 +924,18 @@
 
   document.getElementById('checkoutBtn').addEventListener('click', ()=>{
     if(!selectedPlan) return;
-    // In a real build, this would hit Stripe Checkout / Paddle. The return URL would be success.html.
-    // Persist quiz answers so success.html + app.html can personalize.
-    try {
-      const payload = {...data, plan:selectedPlan, purchasedAt: Date.now()};
-      sessionStorage.setItem('ignite_profile', JSON.stringify(payload));
-    } catch(e){}
+    // DEMO MODE: simulates a successful Stripe Checkout and creates an account using the email captured in the quiz.
+    // In production: POST to /api/create-checkout-session → redirect to Stripe hosted Checkout.
+    const payload = {
+      ...data,
+      plan: selectedPlan,
+      authenticated: true,   // user has just "created" an account + "paid"
+      paid: true,
+      purchased: true,
+      purchasedAt: Date.now(),
+    };
+    try { localStorage.setItem('ignite_profile', JSON.stringify(payload)); } catch(e){}
+    try { sessionStorage.removeItem('ignite_profile'); } catch(e){}
     window.location.href = 'success.html?plan=' + encodeURIComponent(selectedPlan);
   });
 

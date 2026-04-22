@@ -185,6 +185,35 @@
   .sheet .start{width:100%; padding:16px; border-radius:14px; font-weight:900; font-size:16px; letter-spacing:.02em;
                 background:linear-gradient(135deg,var(--pink),var(--orange) 70%,var(--yellow));
                 color:#0B0B1F; box-shadow:var(--shadow)}
+
+  /* Settings sheet */
+  .set-field{margin-bottom:14px}
+  .set-field > label{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:800;margin-bottom:8px}
+  .set-field input[type=number],.set-field input[type=text],.set-field input[type=date],.set-field select{
+    width:100%;padding:12px 14px;background:var(--bg-2);border:2px solid var(--line);border-radius:12px;
+    color:#fff;font:inherit;font-size:15px;outline:none;transition:border-color .15s}
+  .set-field input:focus,.set-field select:focus{border-color:var(--pink)}
+  .chip-row{display:flex;flex-wrap:wrap;gap:6px}
+  .chip-row button{padding:8px 12px;border-radius:999px;background:var(--bg-2);border:2px solid transparent;color:#fff;font-size:13px;font-weight:700;cursor:pointer}
+  .chip-row button.on{border-color:var(--pink);background:rgba(255,46,126,.1);color:var(--pink)}
+  .toggle-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+  .toggle-row:last-child{border-bottom:0}
+  .toggle-row .nm{font-weight:700;font-size:14px}
+  .toggle-row .dd{font-size:12px;color:var(--muted);margin-top:2px;max-width:240px}
+  .tgl{position:relative;width:46px;height:26px;background:var(--bg-2);border-radius:999px;flex:none;cursor:pointer;transition:background .2s;border:1px solid var(--line)}
+  .tgl::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s}
+  .tgl.on{background:linear-gradient(135deg,var(--pink),var(--orange))}
+  .tgl.on::after{transform:translateX(20px)}
+  .tip-box{background:var(--bg-2);border-radius:12px;padding:12px 14px;color:#D4D4E6;font-size:13px;margin-top:8px;line-height:1.5}
+  .plan-status{background:linear-gradient(160deg, rgba(255,46,126,.15), rgba(0,240,181,.08));border:1px solid rgba(255,46,126,.3);border-radius:14px;padding:16px;margin-bottom:14px}
+  .plan-status .row{display:flex;justify-content:space-between;margin:4px 0;font-size:13px}
+  .plan-status .row strong{color:#fff;font-weight:700}
+  .plan-status .row span{color:var(--muted)}
+  .link-btn{width:100%;padding:13px;background:var(--surface);border:1px solid var(--line);color:#fff;border-radius:12px;font-weight:700;font-size:13px;cursor:pointer;margin-top:6px;text-align:left;display:flex;align-items:center;gap:10px;transition:background .15s}
+  .link-btn:hover{background:var(--surface-hi)}
+  .link-btn.danger{color:#FF5E7E}
+  .saved-toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#14142E;border:1px solid var(--mint);color:var(--mint);padding:10px 16px;border-radius:12px;font-size:13px;font-weight:700;z-index:30;opacity:0;transition:opacity .2s;pointer-events:none}
+  .saved-toast.show{opacity:1}
 </style>
 </head>
 <body>
@@ -331,15 +360,15 @@
       </div>
 
       <div class="prof">
-        <button><span class="ic">🧬</span><span class="t">Cycle &amp; hormone settings</span><span class="arr">›</span></button>
-        <button><span class="ic">⚖️</span><span class="t">Update goal weight</span><span class="arr">›</span></button>
-        <button><span class="ic">🗓️</span><span class="t">Edit weekly schedule</span><span class="arr">›</span></button>
-        <button><span class="ic">🏋️‍♀️</span><span class="t">Equipment &amp; location</span><span class="arr">›</span></button>
+        <button data-setting="cycle"><span class="ic">🧬</span><span class="t">Cycle &amp; hormone settings</span><span class="arr">›</span></button>
+        <button data-setting="goal"><span class="ic">⚖️</span><span class="t">Update goal weight</span><span class="arr">›</span></button>
+        <button data-setting="schedule"><span class="ic">🗓️</span><span class="t">Edit weekly schedule</span><span class="arr">›</span></button>
+        <button data-setting="equipment"><span class="ic">🏋️‍♀️</span><span class="t">Equipment &amp; location</span><span class="arr">›</span></button>
       </div>
 
       <div class="prof">
-        <button><span class="ic">🔔</span><span class="t">Notifications</span><span class="arr">›</span></button>
-        <button><span class="ic">💳</span><span class="t">Subscription &amp; billing</span><span class="arr">›</span></button>
+        <button data-setting="notifications"><span class="ic">🔔</span><span class="t">Notifications</span><span class="arr">›</span></button>
+        <button data-setting="subscription"><span class="ic">💳</span><span class="t">Subscription &amp; billing</span><span class="arr">›</span></button>
         <a href="privacy.html"><span class="ic">🛡️</span><span class="t">Privacy &amp; data</span><span class="arr">›</span></a>
         <a href="contact.html"><span class="ic">💬</span><span class="t">Help &amp; support</span><span class="arr">›</span></a>
       </div>
@@ -351,7 +380,7 @@
 
       <div class="prof">
         <a href="index.html"><span class="ic">🏠</span><span class="t">Back to IGNITE home</span><span class="arr">›</span></a>
-        <a href="login.html" onclick="try{sessionStorage.clear()}catch(e){}"><span class="ic">👋</span><span class="t">Sign out</span><span class="arr">›</span></a>
+        <a href="login.html" onclick="try{localStorage.removeItem('ignite_profile');sessionStorage.removeItem('ignite_profile')}catch(e){}"><span class="ic">👋</span><span class="t">Sign out</span><span class="arr">›</span></a>
       </div>
     </div>
   </section>
@@ -376,11 +405,32 @@
   </div>
 </div>
 
+<!-- SETTINGS MODAL -->
+<div class="modal" id="setModal" role="dialog">
+  <div class="sheet">
+    <div class="grab"></div>
+    <h2 id="setTitle">Settings</h2>
+    <div class="meta" id="setSub"></div>
+    <div id="setBody"></div>
+    <button class="start" id="setSave">Save changes</button>
+  </div>
+</div>
+
+<div class="saved-toast" id="savedToast">✓ Saved</div>
+
 <script>
 (() => {
-  // Load quiz profile if present
+  // ---------- Auth guard ----------
+  // Checks for a profile with authenticated:true. Falls back to sessionStorage for quiz-flow continuity.
   let profile = {};
-  try { profile = JSON.parse(sessionStorage.getItem('ignite_profile')||'{}'); } catch(e){ profile = {}; }
+  try {
+    const raw = localStorage.getItem('ignite_profile') || sessionStorage.getItem('ignite_profile') || '{}';
+    profile = JSON.parse(raw);
+  } catch(e){ profile = {}; }
+  if (!profile.authenticated) {
+    location.replace('login.html?next=app.html');
+    return;
+  }
 
   // Greeting by hour
   const hr = new Date().getHours();
@@ -579,6 +629,257 @@
       </linearGradient></defs>
       ${bars}`;
   }
+
+  // ---------- SETTINGS ----------
+  const setModal = document.getElementById('setModal');
+  const setTitle = document.getElementById('setTitle');
+  const setSub = document.getElementById('setSub');
+  const setBody = document.getElementById('setBody');
+  const setSave = document.getElementById('setSave');
+  const savedToast = document.getElementById('savedToast');
+
+  function loadSettings(){
+    try { return JSON.parse(sessionStorage.getItem('ignite_settings') || '{}'); } catch(e){ return {}; }
+  }
+  function saveSettings(obj){
+    try { sessionStorage.setItem('ignite_settings', JSON.stringify({...loadSettings(), ...obj})); } catch(e){}
+  }
+  function toast(msg){
+    savedToast.textContent = msg || '✓ Saved';
+    savedToast.classList.add('show');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(()=>savedToast.classList.remove('show'), 1800);
+  }
+  function closeSet(){ setModal.classList.remove('show'); }
+
+  // Render a settings panel based on which profile button was clicked
+  function openSetting(kind){
+    const s = loadSettings();
+    const prof = profile || {};
+
+    const forms = {
+      cycle: () => ({
+        title: 'Cycle &amp; hormones',
+        sub: 'Your plan adapts to your cycle phase and hormonal stage.',
+        html: `
+          <div class="set-field">
+            <label>Current cycle phase</label>
+            <div class="chip-row" data-field="phase">
+              ${['Menstrual','Follicular','Ovulation','Luteal',"I don't track"].map(p=>
+                `<button data-v="${p}" class="${s.phase===p?'on':''}">${p}</button>`).join('')}
+            </div>
+          </div>
+          <div class="set-field">
+            <label>Average cycle length (days)</label>
+            <input type="number" id="cycleLen" min="20" max="45" value="${s.cycleLen||28}" />
+          </div>
+          <div class="toggle-row">
+            <div><div class="nm">Track symptoms</div><div class="dd">Daily mood, energy, cramps.</div></div>
+            <div class="tgl ${s.trackSymptoms?'on':''}" data-tgl="trackSymptoms"></div>
+          </div>
+          <div class="toggle-row">
+            <div><div class="nm">Perimenopause support</div><div class="dd">Adjusts for hormonal shifts after 40.</div></div>
+            <div class="tgl ${s.peri?'on':''}" data-tgl="peri"></div>
+          </div>
+          <div class="tip-box">Training intensity will adapt: lighter in the luteal phase, higher in the follicular and ovulation phases.</div>`,
+        save: () => {
+          const phaseBtn = setBody.querySelector('[data-field="phase"] .on');
+          saveSettings({
+            phase: phaseBtn ? phaseBtn.dataset.v : null,
+            cycleLen: +document.getElementById('cycleLen').value || 28,
+            trackSymptoms: setBody.querySelector('[data-tgl="trackSymptoms"]').classList.contains('on'),
+            peri: setBody.querySelector('[data-tgl="peri"]').classList.contains('on'),
+          });
+        }
+      }),
+
+      goal: () => ({
+        title: 'Goal weight',
+        sub: 'We\u2019ll recalculate your projected timeline and weekly pace.',
+        html: `
+          <div class="set-field">
+            <label>Unit</label>
+            <div class="chip-row" data-field="unit">
+              <button data-v="kg" class="${(s.unit||prof.weightUnit||'kg')==='kg'?'on':''}">KG</button>
+              <button data-v="lb" class="${(s.unit||prof.weightUnit)==='lb'?'on':''}">LB</button>
+            </div>
+          </div>
+          <div class="set-field">
+            <label>Current weight</label>
+            <input type="number" id="curWeight" min="30" max="250" step="0.1" value="${s.currentWeight||prof.weight||''}" />
+          </div>
+          <div class="set-field">
+            <label>New goal weight</label>
+            <input type="number" id="goalWeight" min="30" max="250" step="0.1" value="${s.goalWeight||prof.target||''}" />
+          </div>
+          <div class="set-field">
+            <label>Target date (optional)</label>
+            <input type="date" id="goalDate" value="${s.goalDate||''}" />
+          </div>
+          <div class="tip-box">A healthy rate is about 0.5 kg / 1 lb per week. We won\u2019t let you set a goal faster than that.</div>`,
+        save: () => {
+          const unitBtn = setBody.querySelector('[data-field="unit"] .on');
+          saveSettings({
+            unit: unitBtn ? unitBtn.dataset.v : 'kg',
+            currentWeight: +document.getElementById('curWeight').value || null,
+            goalWeight: +document.getElementById('goalWeight').value || null,
+            goalDate: document.getElementById('goalDate').value || null,
+          });
+        }
+      }),
+
+      schedule: () => ({
+        title: 'Weekly schedule',
+        sub: 'Tune the plan to how much time you actually have.',
+        html: `
+          <div class="set-field">
+            <label>Workout days per week</label>
+            <div class="chip-row" data-field="days">
+              ${[3,4,5,6].map(n=>`<button data-v="${n}" class="${(s.daysPerWeek||4)===n?'on':''}">${n} days</button>`).join('')}
+            </div>
+          </div>
+          <div class="set-field">
+            <label>Session length</label>
+            <div class="chip-row" data-field="len">
+              ${[15,30,45,60].map(n=>`<button data-v="${n}" class="${(s.sessionLen||prof.time||30)==n?'on':''}">${n} min</button>`).join('')}
+            </div>
+          </div>
+          <div class="set-field">
+            <label>Best time of day</label>
+            <div class="chip-row" data-field="time">
+              ${[['morning','Morning'],['midday','Midday'],['evening','Evening'],['late','Late night']].map(([v,l])=>
+                `<button data-v="${v}" class="${(s.bestTime||'morning')===v?'on':''}">${l}</button>`).join('')}
+            </div>
+          </div>
+          <div class="tip-box">We\u2019ll schedule your toughest sessions on your best-energy days.</div>`,
+        save: () => {
+          saveSettings({
+            daysPerWeek: +setBody.querySelector('[data-field="days"] .on')?.dataset.v || 4,
+            sessionLen: +setBody.querySelector('[data-field="len"] .on')?.dataset.v || 30,
+            bestTime: setBody.querySelector('[data-field="time"] .on')?.dataset.v || 'morning',
+          });
+        }
+      }),
+
+      equipment: () => {
+        const has = s.equipment || [];
+        const placeNow = s.place || prof.place || 'home';
+        return {
+          title: 'Equipment &amp; location',
+          sub: 'We match workouts to what you actually have.',
+          html: `
+            <div class="set-field">
+              <label>Where you train</label>
+              <div class="chip-row" data-field="place">
+                ${[['home','🏠 Home'],['gym','🏋️ Gym'],['both','🔄 Both'],['outdoor','🌳 Outdoor']].map(([v,l])=>
+                  `<button data-v="${v}" class="${placeNow===v?'on':''}">${l}</button>`).join('')}
+              </div>
+            </div>
+            <div class="set-field">
+              <label>Available equipment</label>
+              <div class="chip-row" data-field="equipment">
+                ${['Dumbbells','Resistance bands','Yoga mat','Bench','Kettlebell','Pull-up bar','None'].map(e=>
+                  `<button data-v="${e}" class="${has.includes(e)?'on':''}">${e}</button>`).join('')}
+              </div>
+            </div>
+            <div class="tip-box">No equipment? No problem. Bodyweight-only progressions are built into every plan.</div>`,
+          save: () => {
+            const place = setBody.querySelector('[data-field="place"] .on')?.dataset.v || 'home';
+            const eq = [...setBody.querySelectorAll('[data-field="equipment"] .on')].map(b=>b.dataset.v);
+            saveSettings({ place, equipment: eq });
+          }
+        };
+      },
+
+      notifications: () => {
+        const n = s.notifications || { workout:true, streak:true, weekly:true, tips:false, push:true, email:true };
+        const row = (k, t, d) => `<div class="toggle-row">
+            <div><div class="nm">${t}</div><div class="dd">${d}</div></div>
+            <div class="tgl ${n[k]?'on':''}" data-tgl="n:${k}"></div>
+          </div>`;
+        return {
+          title: 'Notifications',
+          sub: 'We\u2019ll only ping you if it actually helps.',
+          html: row('workout','Workout reminders','A nudge at your scheduled workout time.')
+              + row('streak','Streak reminders','Keep your streak alive with a late-day reminder.')
+              + row('weekly','Weekly progress','Monday morning recap of last week.')
+              + row('tips','Tips &amp; tricks','Occasional coaching tips. Off by default.')
+              + `<div class="set-field" style="margin-top:18px"><label>Delivery channels</label></div>`
+              + row('push','Push notifications','Requires enabling in your phone.')
+              + row('email','Email','Receipts and account emails are always on.'),
+          save: () => {
+            const next = {};
+            setBody.querySelectorAll('[data-tgl^="n:"]').forEach(el=>{
+              next[el.dataset.tgl.slice(2)] = el.classList.contains('on');
+            });
+            saveSettings({ notifications: next });
+          }
+        };
+      },
+
+      subscription: () => {
+        const plan = prof.plan || '3';
+        const labels = {'1':'1-Month · $19.99/mo', '3':'3-Month · $13.33/mo ($39.99 quarterly)', '12':'12-Month · $8.33/mo ($99.99 yearly)'};
+        const since = prof.purchasedAt ? new Date(prof.purchasedAt) : new Date();
+        const next = new Date(since);
+        const weeks = {'1':4,'3':13,'12':52}[plan] || 13;
+        next.setDate(since.getDate() + weeks*7);
+        return {
+          title: 'Subscription &amp; billing',
+          sub: 'Manage your IGNITE plan.',
+          html: `
+            <div class="plan-status">
+              <div class="row"><span>Current plan</span><strong>${labels[plan]}</strong></div>
+              <div class="row"><span>Status</span><strong style="color:var(--mint)">● Active</strong></div>
+              <div class="row"><span>Next billing date</span><strong>${next.toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'})}</strong></div>
+              <div class="row"><span>Billed to</span><strong>Visa •••• 4242</strong></div>
+            </div>
+            <button class="link-btn" onclick="alert('In production: opens Stripe Customer Portal so the user can update their card.')">💳 <span>Update payment method</span></button>
+            <button class="link-btn" onclick="alert('In production: opens Stripe Customer Portal for plan changes.')">🔄 <span>Change plan</span></button>
+            <button class="link-btn" onclick="alert('In production: opens Stripe Customer Portal → cancel flow. Keeps access until period end.')">📄 <span>Download invoices</span></button>
+            <button class="link-btn danger" onclick="if(confirm('Cancel your subscription? You\\'ll keep access until ${next.toLocaleDateString()}.')) alert('In production: calls Stripe to cancel at period end.')">⚠️ <span>Cancel subscription</span></button>
+            <div class="tip-box" style="margin-top:12px">Within 30 days of your first charge? See our <a href="refund.html" style="color:var(--pink)">refund policy</a>.</div>`,
+          save: null, // view-only panel, no save button
+        };
+      },
+    };
+
+    const spec = forms[kind] && forms[kind]();
+    if(!spec) return;
+    setTitle.innerHTML = spec.title;
+    setSub.textContent = spec.sub || '';
+    setBody.innerHTML = spec.html;
+
+    // Attach chip-row toggles
+    setBody.querySelectorAll('[data-field]').forEach(group => {
+      const isMulti = group.dataset.field === 'equipment';
+      group.addEventListener('click', e => {
+        const b = e.target.closest('button[data-v]'); if(!b) return;
+        if(isMulti){ b.classList.toggle('on'); }
+        else { group.querySelectorAll('button').forEach(x=>x.classList.toggle('on', x===b)); }
+      });
+    });
+    // Attach toggle switches
+    setBody.querySelectorAll('.tgl').forEach(t => {
+      t.addEventListener('click', () => t.classList.toggle('on'));
+    });
+
+    // Show save button only if saveable
+    setSave.style.display = spec.save ? 'block' : 'none';
+    setSave.onclick = () => {
+      try { spec.save(); toast('✓ Saved'); } catch(e){ toast('Could not save'); }
+      closeSet();
+    };
+
+    setModal.classList.add('show');
+  }
+
+  // Wire profile buttons
+  document.querySelectorAll('[data-setting]').forEach(btn => {
+    btn.addEventListener('click', () => openSetting(btn.dataset.setting));
+  });
+  // Close on backdrop click
+  setModal.addEventListener('click', e => { if(e.target === setModal) closeSet(); });
 
   // init
   drawWeeks();

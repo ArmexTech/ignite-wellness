@@ -112,6 +112,14 @@
 </div>
 
 <script>
+// ---- Auth guard ----
+(function(){
+  try {
+    const p = JSON.parse(localStorage.getItem('ignite_profile') || sessionStorage.getItem('ignite_profile') || '{}');
+    if (!p.authenticated) { location.replace('login.html?next=workout.html'); }
+  } catch(e){ location.replace('login.html'); }
+})();
+
 // ---- Workout definition ----
 // In a real app this comes from the server based on quiz answers.
 const workout = {

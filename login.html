@@ -47,6 +47,8 @@
 
   .checkbox{display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--muted);line-height:1.5}
   .checkbox input{width:16px;height:16px;margin-top:2px;accent-color:var(--pink)}
+  .demo-banner{background:linear-gradient(160deg, rgba(0,240,181,.12), rgba(255,210,63,.08));border:1px solid rgba(0,240,181,.3);border-radius:12px;padding:10px 14px;margin-bottom:18px;font-size:12px;color:#D4D4E6;line-height:1.5}
+  .demo-banner code{background:rgba(11,11,31,.6);padding:2px 6px;border-radius:4px;font-size:11px;color:var(--mint)}
 </style>
 </head>
 <body>
@@ -61,14 +63,18 @@
       <button type="button" data-mode="signup">Create account</button>
     </div>
 
+    <div class="demo-banner" id="demoBanner">
+      <strong>🧪 Demo mode</strong> — Any email/password works. Try <code>test@ignite.fit</code> / <code>testpass123</code>.
+    </div>
+
     <form class="form" id="authForm" novalidate>
       <div>
         <label for="email">Email</label>
-        <input id="email" name="email" type="email" autocomplete="email" required placeholder="you@email.com" />
+        <input id="email" name="email" type="email" autocomplete="email" required placeholder="you@email.com" value="test@ignite.fit" />
       </div>
       <div>
         <label for="password">Password</label>
-        <input id="password" name="password" type="password" autocomplete="current-password" required minlength="8" placeholder="••••••••" />
+        <input id="password" name="password" type="password" autocomplete="current-password" required minlength="8" placeholder="••••••••" value="testpass123" />
       </div>
       <div class="row" id="signinRow">
         <label class="checkbox"><input type="checkbox" id="remember" checked /> <span>Keep me signed in</span></label>
@@ -132,12 +138,32 @@ tabs.forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
 
 form.addEventListener('submit', e => {
   e.preventDefault();
-  // Real auth wiring (Supabase / Clerk / your own API) goes here.
-  // For now, simulate: store email and bounce into the app.
+  // DEMO MODE: any email+password (min 8 chars) works.
+  // In production: replace with a fetch to /api/auth/signin that returns a session cookie.
   const email = document.getElementById('email').value.trim();
-  if(!email) return;
-  try { sessionStorage.setItem('ignite_profile', JSON.stringify({ email, loggedInAt: Date.now() })); } catch(e){}
-  window.location.href = 'app.html';
+  const password = document.getElementById('password').value;
+  if(!email) { document.getElementById('email').focus(); return; }
+  if(!password || password.length < 8) { alert('Password must be at least 8 characters.'); return; }
+
+  // Merge with any existing quiz answers (so a signed-up user keeps their plan)
+  let existing = {};
+  try { existing = JSON.parse(localStorage.getItem('ignite_profile') || sessionStorage.getItem('ignite_profile') || '{}'); } catch(e){}
+
+  const session = {
+    ...existing,
+    email,
+    authenticated: true,
+    paid: true,         // demo: test accounts have an active 3-month sub
+    plan: existing.plan || '3',
+    loggedInAt: Date.now(),
+  };
+  try { localStorage.setItem('ignite_profile', JSON.stringify(session)); } catch(e){}
+  try { sessionStorage.removeItem('ignite_profile'); } catch(e){}
+
+  // Respect ?next=target if present
+  const params = new URLSearchParams(location.search);
+  const next = params.get('next');
+  window.location.href = (next && /^[a-z0-9.-]+\.html$/i.test(next)) ? next : 'app.html';
 });
 
 function ssoStub(provider){
