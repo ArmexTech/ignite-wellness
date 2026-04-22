@@ -340,13 +340,18 @@
       <div class="prof">
         <button><span class="ic">🔔</span><span class="t">Notifications</span><span class="arr">›</span></button>
         <button><span class="ic">💳</span><span class="t">Subscription &amp; billing</span><span class="arr">›</span></button>
-        <button><span class="ic">🛡️</span><span class="t">Privacy &amp; data</span><span class="arr">›</span></button>
-        <button><span class="ic">💬</span><span class="t">Help &amp; support</span><span class="arr">›</span></button>
+        <a href="privacy.html"><span class="ic">🛡️</span><span class="t">Privacy &amp; data</span><span class="arr">›</span></a>
+        <a href="contact.html"><span class="ic">💬</span><span class="t">Help &amp; support</span><span class="arr">›</span></a>
       </div>
 
       <div class="prof">
-        <a href="index.html"><span class="ic">↩️</span><span class="t">Back to IGNITE home</span><span class="arr">›</span></a>
-        <button><span class="ic">👋</span><span class="t">Sign out</span><span class="arr">›</span></button>
+        <a href="terms.html"><span class="ic">📄</span><span class="t">Terms of Service</span><span class="arr">›</span></a>
+        <a href="refund.html"><span class="ic">↩️</span><span class="t">Refund policy</span><span class="arr">›</span></a>
+      </div>
+
+      <div class="prof">
+        <a href="index.html"><span class="ic">🏠</span><span class="t">Back to IGNITE home</span><span class="arr">›</span></a>
+        <a href="login.html" onclick="try{sessionStorage.clear()}catch(e){}"><span class="ic">👋</span><span class="t">Sign out</span><span class="arr">›</span></a>
       </div>
     </div>
   </section>
@@ -500,8 +505,7 @@
   document.getElementById('todayCard').addEventListener('click', openWorkout);
   modal.addEventListener('click', e=>{ if(e.target===modal) modal.classList.remove('show'); });
   document.getElementById('mStart').addEventListener('click', ()=>{
-    alert("Workout started! (This is a demo — in production, this would launch the follow-along video.)");
-    modal.classList.remove('show');
+    window.location.href = 'workout.html';
   });
 
   // 12-week plan
@@ -581,5 +585,6 @@
 
 })();
 </script>
+<script defer src="shared.js"></script>
 </body>
 </html>

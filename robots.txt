@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+
+# Don't index private / gated / noise pages
+Disallow: /app.html
+Disallow: /login.html
+Disallow: /success.html
+Disallow: /workout.html
+Disallow: /404.html
+Disallow: /ignite.html
+
+Sitemap: https://ignite-wellness-production.up.railway.app/sitemap.xml

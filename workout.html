@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="description" content="Your IGNITE workout — follow along, exercise by exercise." />
+<meta name="robots" content="noindex,nofollow" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='72' font-size='80' text-anchor='middle'%3E🔥%3C/text%3E%3C/svg%3E" />
+<title>Workout — IGNITE</title>
+<style>
+  :root{--bg:#0B0B1F;--bg-2:#14142E;--surface:#1A1A3A;--surface-hi:#232348;--line:#2B2B52;--text:#FFF;--muted:#A6A6C6;--pink:#FF2E7E;--orange:#FF7A3D;--yellow:#FFD23F;--mint:#00F0B5;--shadow:0 20px 60px rgba(255,46,126,.25);}
+  *{box-sizing:border-box}html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  a{color:inherit;text-decoration:none}
+  button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+
+  .app{min-height:100dvh;max-width:520px;margin:0 auto;display:flex;flex-direction:column;
+       background:radial-gradient(1000px 500px at 50% -5%, rgba(255,46,126,.2), transparent 60%),var(--bg)}
+
+  .hdr{display:flex;align-items:center;padding:18px 20px;gap:10px}
+  .icon-btn{width:40px;height:40px;border-radius:50%;background:var(--surface);display:inline-flex;align-items:center;justify-content:center;font-size:16px;font-weight:900}
+  .hdr .title{flex:1;text-align:center;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:800}
+
+  .progress-bar{margin:0 20px;height:6px;background:var(--surface);border-radius:999px;overflow:hidden;position:relative}
+  .progress-bar i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--pink),var(--orange),var(--yellow));transition:width .4s cubic-bezier(.2,.8,.2,1)}
+
+  .content{flex:1;padding:24px 20px 160px}
+
+  .phase-badge{display:inline-block;font-size:11px;letter-spacing:.22em;font-weight:800;text-transform:uppercase;padding:6px 10px;border-radius:999px;margin-bottom:14px}
+  .phase-badge.work{color:var(--pink);background:rgba(255,46,126,.12)}
+  .phase-badge.rest{color:var(--mint);background:rgba(0,240,181,.12)}
+  .phase-badge.done{color:var(--yellow);background:rgba(255,210,63,.12)}
+
+  .exercise{text-align:center;margin-bottom:28px}
+  .ex-name{font-size:34px;letter-spacing:-.02em;margin:0 0 6px;font-weight:900;line-height:1.1}
+  .ex-meta{color:var(--muted);font-size:14px;margin:0 0 20px}
+
+  .visual{width:220px;height:220px;margin:0 auto;border-radius:50%;position:relative;
+          background:linear-gradient(160deg,rgba(255,46,126,.35),rgba(255,122,61,.2) 50%,rgba(0,240,181,.15));
+          display:flex;align-items:center;justify-content:center;box-shadow:0 20px 60px rgba(255,46,126,.25);
+          overflow:hidden}
+  .visual::before{content:"";position:absolute;inset:-20%;background:conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,.15) 30%, transparent 60%);animation:rot 8s linear infinite;mix-blend-mode:overlay;pointer-events:none}
+  @keyframes rot{to{transform:rotate(360deg)}}
+  .visual .emoji{font-size:92px;position:relative;z-index:1}
+
+  .timer-ring{width:220px;height:220px;margin:0 auto;position:relative}
+  .timer-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+  .timer-ring .track{stroke:var(--line)}
+  .timer-ring .prog{stroke:url(#tg);stroke-linecap:round;transition:stroke-dashoffset .3s linear}
+  .timer-ring .label{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+  .timer-ring .big{font-size:56px;font-weight:900;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums}
+  .timer-ring .small{font-size:12px;color:var(--muted);letter-spacing:.18em;text-transform:uppercase;font-weight:800}
+
+  .reps-card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:18px;margin-top:24px;text-align:center}
+  .reps-card .rep-v{font-size:44px;font-weight:900;letter-spacing:-.03em;background:linear-gradient(90deg,var(--pink),var(--yellow));-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1}
+  .reps-card .rep-l{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:800;margin-top:4px}
+
+  .tips{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-top:18px;display:flex;gap:10px;align-items:flex-start}
+  .tips .ic{width:28px;height:28px;border-radius:8px;background:rgba(0,240,181,.12);display:inline-flex;align-items:center;justify-content:center;font-size:14px;flex:none;color:var(--mint)}
+  .tips .txt{font-size:13px;color:#D4D4E6;line-height:1.5}
+
+  .exlist{margin-top:22px}
+  .exlist h3{margin:0 0 10px;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:800}
+  .ex-row{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:12px;background:var(--surface);border:1px solid var(--line);margin-bottom:6px;font-size:13px}
+  .ex-row .n{width:24px;height:24px;border-radius:7px;background:var(--bg-2);display:inline-flex;align-items:center;justify-content:center;font-weight:900;font-size:11px;flex:none}
+  .ex-row.cur{border-color:var(--pink);background:linear-gradient(180deg, rgba(255,46,126,.1), rgba(255,46,126,.02))}
+  .ex-row.cur .n{background:linear-gradient(135deg,var(--pink),var(--orange));color:#0B0B1F}
+  .ex-row.done{opacity:.55}
+  .ex-row.done::after{content:"✓";margin-left:auto;color:var(--mint);font-weight:900}
+  .ex-row .nm{flex:1;font-weight:700}
+  .ex-row .rp{color:var(--muted);font-size:12px}
+
+  .controls{position:fixed;bottom:0;left:0;right:0;padding:16px 20px calc(16px + env(safe-area-inset-bottom,0));
+            background:linear-gradient(180deg, transparent, var(--bg) 30%);display:flex;justify-content:center}
+  .controls-inner{width:100%;max-width:480px;display:flex;gap:10px}
+  .ctrl{flex:none;width:56px;height:56px;border-radius:16px;background:var(--surface);border:1px solid var(--line);display:inline-flex;align-items:center;justify-content:center;font-size:20px;transition:background .15s}
+  .ctrl:hover{background:var(--surface-hi)}
+  .ctrl[disabled]{opacity:.3}
+  .ctrl.play{flex:1;background:linear-gradient(135deg,var(--pink),var(--orange) 70%,var(--yellow));color:#0B0B1F;font-weight:900;font-size:15px;letter-spacing:.02em;gap:8px;box-shadow:var(--shadow)}
+
+  .complete{text-align:center;padding:20px 0}
+  .complete h2{font-size:40px;letter-spacing:-.02em;margin:0 0 8px;line-height:1.1}
+  .complete h2 em{font-style:normal;background:linear-gradient(90deg,var(--pink),var(--yellow));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .complete .summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:22px 0}
+  .complete .kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 10px}
+  .complete .kpi .k{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:800}
+  .complete .kpi .v{font-size:22px;font-weight:900;margin-top:2px;letter-spacing:-.02em}
+  .complete .done-btn{width:100%;padding:18px;border-radius:16px;background:linear-gradient(135deg,var(--pink),var(--orange) 70%,var(--yellow));color:#0B0B1F;font-weight:900;font-size:16px;box-shadow:var(--shadow);margin-top:14px}
+
+  @media (max-width:400px){.ex-name{font-size:28px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="hdr">
+    <button class="icon-btn" onclick="confirmExit()" aria-label="Close">✕</button>
+    <div class="title" id="workoutTitle">Glute Sculpt · 30 min</div>
+    <button class="icon-btn" id="soundBtn" aria-label="Sound">🔊</button>
+  </div>
+  <div class="progress-bar"><i id="progBar"></i></div>
+
+  <div class="content" id="main">
+    <!-- Active exercise or rest view is injected here -->
+  </div>
+
+  <div class="controls" id="controls">
+    <div class="controls-inner">
+      <button class="ctrl" id="prevBtn" aria-label="Previous">⏮</button>
+      <button class="ctrl play" id="playBtn">▶ Start</button>
+      <button class="ctrl" id="skipBtn" aria-label="Skip">⏭</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---- Workout definition ----
+// In a real app this comes from the server based on quiz answers.
+const workout = {
+  title: 'Glute Sculpt · 30 min',
+  exercises: [
+    { name: 'Warm-up: hip openers', emoji: '🧘‍♀️', mode: 'time', seconds: 60, reps: null, tip: 'Breathe slow and easy. Mobilize through full range.' },
+    { name: 'Glute bridge',          emoji: '🍑', mode: 'reps', seconds: null, reps: '3 × 12', tip: 'Squeeze at the top. Keep knees tracking over ankles.' },
+    { name: 'Romanian deadlift',     emoji: '🏋️‍♀️', mode: 'reps', seconds: null, reps: '3 × 10', tip: 'Hinge at the hips, flat back, bar close to legs.' },
+    { name: 'Bulgarian split squat', emoji: '🦵', mode: 'reps', seconds: null, reps: '3 × 8 each', tip: 'Front knee tracks over toes. Drive through the heel.' },
+    { name: 'Hip thrust',            emoji: '💪', mode: 'reps', seconds: null, reps: '3 × 12', tip: 'Chin tucked, ribs down, glutes do the work.' },
+    { name: 'Curtsy lunge',          emoji: '🎯', mode: 'reps', seconds: null, reps: '3 × 10 each', tip: 'Cross back behind, drop straight down, press up through the front heel.' },
+    { name: 'Fire hydrant',          emoji: '🔥', mode: 'reps', seconds: null, reps: '3 × 15 each', tip: 'Core braced, hips square. Small, controlled lifts.' },
+    { name: 'Cool-down stretch',     emoji: '🌸', mode: 'time', seconds: 90, reps: null, tip: 'Breathe into each stretch for 30 seconds.' },
+  ],
+  restSeconds: 20,
+};
+
+// ---- State ----
+let idx = 0;              // index into exercises
+let mode = 'idle';        // 'idle' | 'active' | 'rest' | 'complete'
+let timeLeft = 0;
+let ticker = null;
+const start = Date.now();
+let actualActiveSec = 0;
+let soundOn = true;
+
+// ---- DOM refs ----
+const main = document.getElementById('main');
+const progBar = document.getElementById('progBar');
+const playBtn = document.getElementById('playBtn');
+const prevBtn = document.getElementById('prevBtn');
+const skipBtn = document.getElementById('skipBtn');
+const soundBtn = document.getElementById('soundBtn');
+const titleEl = document.getElementById('workoutTitle');
+titleEl.textContent = workout.title;
+
+// ---- Helpers ----
+function fmt(s){ s=Math.max(0,Math.floor(s)); return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; }
+function updateProgress(){
+  const total = workout.exercises.length;
+  const done = Math.min(idx, total);
+  progBar.style.width = (done/total*100) + '%';
+}
+function beep(freq=660, dur=0.12){
+  if(!soundOn) return;
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext; if(!Ctx) return;
+    const ctx = beep._c || (beep._c = new Ctx());
+    const o = ctx.createOscillator(); const g = ctx.createGain();
+    o.frequency.value = freq; o.connect(g); g.connect(ctx.destination);
+    g.gain.setValueAtTime(0.001, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.15, ctx.currentTime+0.01);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+dur);
+    o.start(); o.stop(ctx.currentTime + dur);
+  } catch(e){}
+}
+
+// ---- Views ----
+function renderExerciseList(currentIdx, upcomingMode){
+  return `<div class="exlist">
+    <h3>This workout · ${workout.exercises.length} exercises</h3>
+    ${workout.exercises.map((e,i)=>{
+      const cls = i<currentIdx ? 'done' : (i===currentIdx ? 'cur' : '');
+      const rp = e.mode==='time' ? fmt(e.seconds) : e.reps;
+      return `<div class="ex-row ${cls}"><div class="n">${i+1}</div><div class="nm">${e.name}</div><div class="rp">${rp}</div></div>`;
+    }).join('')}
+  </div>`;
+}
+
+function renderActive(){
+  const ex = workout.exercises[idx];
+  const isTime = ex.mode === 'time';
+  const main_html = `
+    <div class="exercise">
+      <span class="phase-badge work">Exercise ${idx+1} of ${workout.exercises.length}</span>
+      <h2 class="ex-name">${ex.name}</h2>
+      <p class="ex-meta">${isTime ? 'Hold / move for ' + fmt(ex.seconds) : ex.reps}</p>
+      ${isTime ? timerRing(ex.seconds, ex.seconds) : `
+        <div class="visual"><span class="emoji">${ex.emoji}</span></div>
+        <div class="reps-card"><div class="rep-v">${ex.reps}</div><div class="rep-l">Reps · sets</div></div>
+      `}
+      <div class="tips"><div class="ic">💡</div><div class="txt">${ex.tip}</div></div>
+    </div>
+    ${renderExerciseList(idx)}`;
+  main.innerHTML = main_html;
+  updateProgress();
+  playBtn.innerHTML = isTime ? (mode==='active' ? '⏸ Pause' : '▶ Start timer') : '✓ Mark complete';
+  prevBtn.disabled = idx === 0;
+  skipBtn.disabled = false;
+}
+
+function renderRest(){
+  main.innerHTML = `
+    <div class="exercise">
+      <span class="phase-badge rest">Rest</span>
+      <h2 class="ex-name">Catch your <em>breath</em>.</h2>
+      <p class="ex-meta">Next up: ${workout.exercises[idx]?.name || 'Finish line'}</p>
+      ${timerRing(workout.restSeconds, timeLeft)}
+      <div class="tips"><div class="ic">🌬️</div><div class="txt">Box breathing: inhale 4, hold 4, exhale 4, hold 4.</div></div>
+    </div>
+    ${renderExerciseList(idx)}`;
+  playBtn.innerHTML = mode==='rest' ? '⏸ Pause' : '▶ Resume';
+}
+
+function renderComplete(){
+  const minutes = Math.round(actualActiveSec/60);
+  const kcal = Math.round(actualActiveSec/60 * 7);
+  main.innerHTML = `
+    <div class="complete">
+      <div class="visual" style="margin-bottom:20px"><span class="emoji">🏆</span></div>
+      <h2>Workout <em>complete</em>.</h2>
+      <p class="ex-meta" style="margin:0 0 20px">Strong. Consistent. That's how it builds.</p>
+      <div class="summary">
+        <div class="kpi"><div class="k">Time</div><div class="v">${minutes}m</div></div>
+        <div class="kpi"><div class="k">Exercises</div><div class="v">${workout.exercises.length}</div></div>
+        <div class="kpi"><div class="k">Est. kcal</div><div class="v">${kcal}</div></div>
+      </div>
+      <button class="done-btn" onclick="saveAndExit()">Save &amp; return to plan</button>
+    </div>`;
+  progBar.style.width = '100%';
+  document.getElementById('controls').style.display = 'none';
+}
+
+function timerRing(total, current){
+  const r = 90, c = 2 * Math.PI * r;
+  const pct = Math.max(0, Math.min(1, current/total));
+  const off = c * (1 - pct);
+  return `<div class="timer-ring">
+    <svg viewBox="0 0 220 220">
+      <defs><linearGradient id="tg" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#FF2E7E"/><stop offset="100%" stop-color="#FFD23F"/>
+      </linearGradient></defs>
+      <circle class="track" cx="110" cy="110" r="${r}" fill="none" stroke-width="10"/>
+      <circle class="prog" id="timerArc" cx="110" cy="110" r="${r}" fill="none" stroke-width="10"
+              stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}"/>
+    </svg>
+    <div class="label"><div class="big" id="timerBig">${fmt(current)}</div><div class="small">${mode==='rest' ? 'Rest' : 'Time'}</div></div>
+  </div>`;
+}
+
+function updateTimerUI(total){
+  const big = document.getElementById('timerBig'); if(!big) return;
+  big.textContent = fmt(timeLeft);
+  const arc = document.getElementById('timerArc'); if(!arc) return;
+  const r = 90, c = 2 * Math.PI * r;
+  const pct = Math.max(0, Math.min(1, timeLeft/total));
+  arc.setAttribute('stroke-dashoffset', (c * (1 - pct)).toFixed(1));
+}
+
+// ---- Engine ----
+function startActiveTimer(){
+  const ex = workout.exercises[idx];
+  if(ex.mode !== 'time') return;
+  mode = 'active';
+  timeLeft = timeLeft || ex.seconds;
+  renderActive();
+  clearInterval(ticker);
+  ticker = setInterval(() => {
+    timeLeft--; actualActiveSec++;
+    updateTimerUI(ex.seconds);
+    if(timeLeft <= 3 && timeLeft > 0) beep(660, .08);
+    if(timeLeft <= 0){
+      clearInterval(ticker); beep(880, .2);
+      nextExercise();
+    }
+  }, 1000);
+}
+function pauseTimer(){ clearInterval(ticker); mode = 'idle'; playBtn.innerHTML = '▶ Resume'; }
+
+function startRest(){
+  if(idx >= workout.exercises.length){ finish(); return; }
+  mode = 'rest';
+  timeLeft = workout.restSeconds;
+  renderRest();
+  clearInterval(ticker);
+  ticker = setInterval(() => {
+    timeLeft--;
+    updateTimerUI(workout.restSeconds);
+    if(timeLeft <= 3 && timeLeft > 0) beep(440, .08);
+    if(timeLeft <= 0){ clearInterval(ticker); beep(660, .15); renderActive(); mode='idle'; }
+  }, 1000);
+}
+
+function nextExercise(){
+  idx++;
+  if(idx >= workout.exercises.length){ finish(); return; }
+  startRest();
+}
+
+function finish(){
+  mode = 'complete';
+  clearInterval(ticker);
+  renderComplete();
+}
+
+function saveAndExit(){
+  try {
+    const prev = JSON.parse(sessionStorage.getItem('ignite_profile')||'{}');
+    const now = Date.now();
+    const completed = (prev.completedWorkouts||0) + 1;
+    sessionStorage.setItem('ignite_profile', JSON.stringify({...prev, completedWorkouts: completed, lastWorkoutAt: now}));
+  } catch(e){}
+  window.location.href = 'app.html';
+}
+
+function confirmExit(){
+  if(mode==='complete') { window.location.href='app.html'; return; }
+  if(confirm('Exit workout? Your progress won\u2019t be saved.')) window.location.href = 'app.html';
+}
+
+// ---- Button handlers ----
+playBtn.addEventListener('click', () => {
+  if(mode==='complete') return;
+  const ex = workout.exercises[idx];
+  if(mode==='active') { pauseTimer(); return; }
+  if(mode==='rest')   { clearInterval(ticker); startRest(); return; }
+  // idle → start
+  if(ex.mode === 'time') { startActiveTimer(); }
+  else {
+    // reps mode: "Mark complete" advances
+    actualActiveSec += 45; // estimated reps time
+    nextExercise();
+  }
+});
+prevBtn.addEventListener('click', () => {
+  if(idx>0) { idx--; timeLeft = 0; mode='idle'; clearInterval(ticker); renderActive(); }
+});
+skipBtn.addEventListener('click', () => {
+  clearInterval(ticker); mode='idle'; timeLeft=0; idx++;
+  if(idx >= workout.exercises.length) finish(); else renderActive();
+});
+soundBtn.addEventListener('click', () => { soundOn = !soundOn; soundBtn.textContent = soundOn ? '🔊' : '🔇'; });
+
+// init
+renderActive();
+updateProgress();
+</script>
+</body>
+</html>

@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="description" content="Sign in to your IGNITE account." />
+<meta name="robots" content="noindex,nofollow" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='72' font-size='80' text-anchor='middle'%3E🔥%3C/text%3E%3C/svg%3E" />
+<title>Sign in — IGNITE</title>
+<style>
+  :root{--bg:#0B0B1F;--bg-2:#14142E;--surface:#1A1A3A;--surface-hi:#232348;--line:#2B2B52;--text:#FFF;--muted:#A6A6C6;--pink:#FF2E7E;--orange:#FF7A3D;--yellow:#FFD23F;--mint:#00F0B5;--shadow:0 20px 60px rgba(255,46,126,.25);}
+  *{box-sizing:border-box}html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh}
+  a{color:var(--pink);text-decoration:none}a:hover{text-decoration:underline}
+  button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+  .page{min-height:100dvh;display:grid;place-items:center;background:radial-gradient(800px 400px at 50% -10%, rgba(255,46,126,.2), transparent 60%),var(--bg);padding:40px 20px}
+  .card{width:100%;max-width:420px;background:var(--surface);border:1px solid var(--line);border-radius:24px;padding:32px 28px;box-shadow:0 40px 100px rgba(255,46,126,.12)}
+  .brand{font-weight:900;letter-spacing:.28em;font-size:18px;background:linear-gradient(90deg,var(--pink),var(--orange) 60%,var(--yellow));-webkit-background-clip:text;background-clip:text;color:transparent;display:inline-block;margin-bottom:14px}
+  h1{font-size:28px;letter-spacing:-.02em;margin:0 0 8px;font-weight:900}
+  h1 em{font-style:normal;background:linear-gradient(90deg,var(--pink),var(--yellow));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{color:var(--muted);font-size:14px;margin:0 0 22px}
+
+  .tabs{display:flex;gap:6px;background:var(--bg-2);padding:5px;border-radius:14px;margin-bottom:22px}
+  .tabs button{flex:1;padding:10px;border-radius:10px;font-weight:800;font-size:13px;letter-spacing:.04em;color:var(--muted)}
+  .tabs button.on{background:var(--surface);color:#fff;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+
+  .form{display:grid;gap:12px}
+  label{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:800;margin-bottom:4px}
+  input{width:100%;padding:14px 14px;background:var(--bg-2);border:2px solid var(--line);border-radius:12px;color:#fff;font:inherit;font-size:15px;outline:none;transition:border-color .15s}
+  input:focus{border-color:var(--pink)}
+  .row{display:flex;justify-content:space-between;align-items:center;font-size:13px}
+  .row a{color:var(--muted)}.row a:hover{color:var(--pink)}
+  .submit{width:100%;padding:15px 22px;border-radius:14px;font-weight:900;font-size:15px;letter-spacing:.02em;background:linear-gradient(135deg,var(--pink),var(--orange) 70%,var(--yellow));color:#0B0B1F;box-shadow:var(--shadow);margin-top:6px;transition:transform .15s}
+  .submit:active{transform:translateY(1px) scale(.99)}
+  .submit.alt{background:var(--surface-hi);color:#fff;box-shadow:none}
+
+  .divider{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px;letter-spacing:.16em;font-weight:700;margin:18px 0}
+  .divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--line)}
+
+  .sso{display:grid;gap:8px}
+  .sso button{width:100%;padding:12px 14px;border-radius:12px;background:var(--bg-2);border:1px solid var(--line);color:#fff;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;gap:10px;transition:background .15s}
+  .sso button:hover{background:var(--surface-hi)}
+  .sso .ic{width:22px;height:22px;display:inline-block}
+
+  .foot{text-align:center;color:var(--muted);font-size:13px;margin-top:18px}
+  .legal{text-align:center;color:var(--muted);font-size:11px;margin-top:16px;line-height:1.5}
+  .legal a{color:var(--muted);text-decoration:underline}
+
+  .checkbox{display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--muted);line-height:1.5}
+  .checkbox input{width:16px;height:16px;margin-top:2px;accent-color:var(--pink)}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="card">
+    <div class="brand">IGNITE</div>
+    <h1 id="title">Welcome <em>back</em>.</h1>
+    <p class="sub" id="subtitle">Sign in to continue your plan.</p>
+
+    <div class="tabs" role="tablist">
+      <button type="button" class="on" data-mode="signin">Sign in</button>
+      <button type="button" data-mode="signup">Create account</button>
+    </div>
+
+    <form class="form" id="authForm" novalidate>
+      <div>
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" autocomplete="email" required placeholder="you@email.com" />
+      </div>
+      <div>
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required minlength="8" placeholder="••••••••" />
+      </div>
+      <div class="row" id="signinRow">
+        <label class="checkbox"><input type="checkbox" id="remember" checked /> <span>Keep me signed in</span></label>
+        <a href="#" id="forgot">Forgot password?</a>
+      </div>
+      <div class="checkbox" id="termsRow" style="display:none">
+        <input type="checkbox" id="terms" required />
+        <span>I agree to the <a href="terms.html">Terms</a> and <a href="privacy.html">Privacy Policy</a>.</span>
+      </div>
+
+      <button class="submit" type="submit" id="submitBtn">Sign in</button>
+    </form>
+
+    <div class="divider">OR</div>
+    <div class="sso">
+      <button type="button" onclick="ssoStub('Apple')">
+        <span class="ic">🍎</span> Continue with Apple
+      </button>
+      <button type="button" onclick="ssoStub('Google')">
+        <span class="ic">🇬</span> Continue with Google
+      </button>
+    </div>
+
+    <div class="foot" id="footText">New here? <a href="quiz.html">Take the quiz first →</a></div>
+    <div class="legal">Protected by industry-standard encryption. We'll never post on your behalf.</div>
+  </div>
+</div>
+
+<script>
+const tabs = document.querySelectorAll('.tabs button');
+const form = document.getElementById('authForm');
+const title = document.getElementById('title');
+const subtitle = document.getElementById('subtitle');
+const submitBtn = document.getElementById('submitBtn');
+const signinRow = document.getElementById('signinRow');
+const termsRow = document.getElementById('termsRow');
+const footText = document.getElementById('footText');
+const pw = document.getElementById('password');
+
+function setMode(mode){
+  tabs.forEach(b=>b.classList.toggle('on', b.dataset.mode===mode));
+  if(mode==='signin'){
+    title.innerHTML = 'Welcome <em>back</em>.';
+    subtitle.textContent = 'Sign in to continue your plan.';
+    submitBtn.textContent = 'Sign in';
+    signinRow.style.display = 'flex';
+    termsRow.style.display = 'none';
+    pw.autocomplete = 'current-password';
+    footText.innerHTML = 'New here? <a href="quiz.html">Take the quiz first →</a>';
+  } else {
+    title.innerHTML = 'Create your <em>account</em>.';
+    subtitle.textContent = 'You\u2019ll get instant access to your personalized plan.';
+    submitBtn.textContent = 'Create account';
+    signinRow.style.display = 'none';
+    termsRow.style.display = 'flex';
+    pw.autocomplete = 'new-password';
+    footText.innerHTML = 'Already have one? <button type="button" onclick="setMode(\u0027signin\u0027)" style="color:var(--pink);font-weight:700">Sign in</button>';
+  }
+}
+tabs.forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
+
+form.addEventListener('submit', e => {
+  e.preventDefault();
+  // Real auth wiring (Supabase / Clerk / your own API) goes here.
+  // For now, simulate: store email and bounce into the app.
+  const email = document.getElementById('email').value.trim();
+  if(!email) return;
+  try { sessionStorage.setItem('ignite_profile', JSON.stringify({ email, loggedInAt: Date.now() })); } catch(e){}
+  window.location.href = 'app.html';
+});
+
+function ssoStub(provider){
+  // In production: redirect to OAuth endpoint (e.g., /api/auth/google).
+  alert(provider + ' sign-in is ready to wire up. Point this to your OAuth provider when you set up auth.');
+}
+
+document.getElementById('forgot').addEventListener('click', e => {
+  e.preventDefault();
+  alert('Password reset email would be sent here. Wire this to your auth provider.');
+});
+</script>
+<script defer src="shared.js"></script>
+</body>
+</html>

@@ -924,17 +924,18 @@
 
   document.getElementById('checkoutBtn').addEventListener('click', ()=>{
     if(!selectedPlan) return;
-    // In a real build, this would hit Stripe / Paddle / etc.
-    // Persist quiz answers so app.html can personalize.
+    // In a real build, this would hit Stripe Checkout / Paddle. The return URL would be success.html.
+    // Persist quiz answers so success.html + app.html can personalize.
     try {
       const payload = {...data, plan:selectedPlan, purchasedAt: Date.now()};
       sessionStorage.setItem('ignite_profile', JSON.stringify(payload));
     } catch(e){}
-    window.location.href = 'app.html';
+    window.location.href = 'success.html?plan=' + encodeURIComponent(selectedPlan);
   });
 
   render();
 })();
 </script>
+<script defer src="shared.js"></script>
 </body>
 </html>
