@@ -1,0 +1,814 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>IGNITE — Fitness tailored to you</title>
+<style>
+  :root{
+    --bg:#0B0B1F;
+    --bg-2:#14142E;
+    --surface:#1A1A3A;
+    --surface-hi:#232348;
+    --line:#2B2B52;
+    --text:#FFFFFF;
+    --muted:#A6A6C6;
+    --pink:#FF2E7E;
+    --pink-2:#FF5FA0;
+    --orange:#FF7A3D;
+    --mint:#00F0B5;
+    --yellow:#FFD23F;
+    --shadow:0 20px 60px rgba(255,46,126,.25);
+    --r:18px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased; overflow-x:hidden;}
+  a{color:inherit}
+  button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+
+  /* layout shell */
+  .app{min-height:100dvh; display:flex; flex-direction:column; max-width:520px; margin:0 auto;
+       background:radial-gradient(1200px 600px at 50% -10%, rgba(255,46,126,.18), transparent 60%), var(--bg);
+       position:relative;}
+  .topbar{display:flex; align-items:center; gap:12px; padding:16px 18px 8px; position:sticky; top:0; background:linear-gradient(180deg, var(--bg) 70%, transparent); z-index:5;}
+  .logo{font-weight:900; letter-spacing:.28em; font-size:16px;
+        background:linear-gradient(90deg,var(--pink),var(--orange) 60%,var(--yellow));
+        -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .step-count{margin-left:auto; font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums}
+  .back{width:36px;height:36px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
+        background:var(--surface); color:var(--text); font-size:18px}
+  .back[disabled]{opacity:.3; cursor:not-allowed}
+  .progress{height:6px; background:var(--surface); border-radius:999px; margin:6px 18px 0; overflow:hidden}
+  .progress > i{display:block; height:100%; width:0%;
+                background:linear-gradient(90deg,var(--pink),var(--orange),var(--yellow));
+                transition:width .45s cubic-bezier(.2,.8,.2,1); border-radius:999px;}
+
+  .screen{flex:1; padding:24px 20px 140px; display:none; animation:fadeIn .45s cubic-bezier(.2,.8,.2,1)}
+  .screen.active{display:flex; flex-direction:column}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(12px)} to{opacity:1; transform:none}}
+
+  /* headings */
+  .eyebrow{display:inline-block; font-size:11px; letter-spacing:.22em; font-weight:800; text-transform:uppercase;
+           color:var(--pink); background:rgba(255,46,126,.12); padding:6px 10px; border-radius:999px; margin-bottom:14px}
+  h1{font-size:30px; line-height:1.1; margin:0 0 10px; letter-spacing:-.02em; font-weight:900}
+  h1 em{font-style:normal;
+        background:linear-gradient(90deg,var(--pink),var(--orange) 70%,var(--yellow));
+        -webkit-background-clip:text; background-clip:text; color:transparent}
+  .sub{color:var(--muted); font-size:15px; line-height:1.5; margin:0 0 22px}
+
+  /* option cards */
+  .options{display:grid; gap:12px}
+  .opt{display:flex; align-items:center; gap:14px; padding:16px 18px; background:var(--surface);
+       border:2px solid transparent; border-radius:var(--r); text-align:left; transition:all .18s ease;
+       position:relative;}
+  .opt:hover{background:var(--surface-hi)}
+  .opt .ico{width:44px;height:44px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;
+            background:linear-gradient(135deg, rgba(255,46,126,.2), rgba(0,240,181,.15)); font-size:22px; flex:none}
+  .opt .t{font-weight:700; font-size:16px}
+  .opt .d{color:var(--muted); font-size:13px; margin-top:2px}
+  .opt .check{margin-left:auto; width:24px; height:24px; border-radius:50%; border:2px solid var(--line);
+              display:inline-flex; align-items:center; justify-content:center; flex:none; transition:all .18s}
+  .opt .check::after{content:""; width:10px; height:10px; border-radius:50%;
+                     background:linear-gradient(135deg,var(--pink),var(--orange)); transform:scale(0); transition:transform .18s}
+  .opt.selected{border-color:var(--pink); background:linear-gradient(180deg, rgba(255,46,126,.1), rgba(255,46,126,.03))}
+  .opt.selected .check{border-color:var(--pink)}
+  .opt.selected .check::after{transform:scale(1)}
+
+  /* body silhouette cards */
+  .bodies{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+  .body-card{background:var(--surface); border:2px solid transparent; border-radius:var(--r); padding:14px 12px 12px;
+             text-align:center; transition:all .18s}
+  .body-card:hover{background:var(--surface-hi)}
+  .body-card.selected{border-color:var(--pink); box-shadow:var(--shadow)}
+  .body-card svg{width:100%; height:160px}
+  .body-card .label{font-weight:700; margin-top:6px; font-size:14px}
+  .body-card .hint{color:var(--muted); font-size:12px}
+
+  /* interstitial */
+  .insight{background:linear-gradient(160deg, rgba(255,46,126,.15), rgba(255,122,61,.1));
+           border:1px solid rgba(255,46,126,.35); border-radius:22px; padding:22px; margin-bottom:18px}
+  .insight .big{font-size:46px; font-weight:900; letter-spacing:-.03em;
+                background:linear-gradient(90deg,var(--pink),var(--yellow));
+                -webkit-background-clip:text; background-clip:text; color:transparent}
+  .insight .small{color:var(--muted); font-size:14px; margin-top:4px}
+
+  /* text inputs */
+  .inputs{display:grid; gap:14px}
+  .field{display:flex; align-items:baseline; gap:10px; background:var(--surface); border:2px solid transparent;
+         border-radius:var(--r); padding:16px 18px; transition:all .18s}
+  .field:focus-within{border-color:var(--pink); background:var(--surface-hi)}
+  .field input{flex:1; background:transparent; border:0; outline:0; color:var(--text); font-size:26px; font-weight:800; letter-spacing:-.02em}
+  .field .unit{color:var(--muted); font-size:14px; font-weight:700; letter-spacing:.12em}
+  .field .label{position:absolute; left:18px; top:8px; font-size:11px; color:var(--muted); letter-spacing:.2em; text-transform:uppercase}
+  .field{position:relative; padding-top:26px}
+
+  .toggle-row{display:flex; gap:8px; background:var(--surface); padding:6px; border-radius:999px; margin-bottom:10px}
+  .toggle-row button{flex:1; padding:10px 12px; border-radius:999px; font-weight:700; font-size:13px; color:var(--muted); letter-spacing:.08em}
+  .toggle-row button.on{background:linear-gradient(135deg,var(--pink),var(--orange)); color:#fff}
+
+  /* CTA footer */
+  .cta{position:fixed; left:50%; transform:translateX(-50%); bottom:16px; width:calc(100% - 40px); max-width:480px; z-index:6}
+  .cta button.primary{width:100%; padding:18px 22px; border-radius:18px; font-weight:900; font-size:17px; letter-spacing:.02em;
+                      background:linear-gradient(135deg,var(--pink),var(--orange) 70%,var(--yellow));
+                      color:#0B0B1F; box-shadow:var(--shadow);
+                      transition:transform .15s}
+  .cta button.primary:active{transform:translateY(1px) scale(.99)}
+  .cta button.primary[disabled]{opacity:.4; cursor:not-allowed; filter:grayscale(.3)}
+  .cta .fineprint{text-align:center; color:var(--muted); font-size:11px; margin-top:8px}
+
+  /* welcome */
+  .hero{padding:10px 4px 12px; text-align:left}
+  .hero h1{font-size:40px}
+  .hero .bullets{display:grid; gap:10px; margin-top:22px}
+  .hero .bullets li{list-style:none; display:flex; gap:12px; align-items:center; background:var(--surface); padding:14px 16px; border-radius:14px}
+  .hero .bullets i{width:34px;height:34px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center; font-style:normal;
+                   background:linear-gradient(135deg,var(--pink),var(--orange)); flex:none; font-size:18px}
+  .badge-row{display:flex; gap:8px; margin-top:18px; flex-wrap:wrap}
+  .badge{font-size:11px; letter-spacing:.14em; text-transform:uppercase; font-weight:800; padding:6px 10px; border-radius:999px;
+         background:var(--surface); color:var(--muted)}
+
+  /* loader */
+  .loader{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:24px; padding:40px 10px}
+  .ring{width:160px;height:160px;border-radius:50%; position:relative;
+        background:conic-gradient(from 0deg, var(--pink), var(--orange), var(--yellow), var(--mint), var(--pink));
+        animation:spin 1.6s linear infinite;
+        mask:radial-gradient(circle at center, transparent 60%, #000 62%);
+        -webkit-mask:radial-gradient(circle at center, transparent 60%, #000 62%);}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loader .pct{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:42px; font-weight:900; letter-spacing:-.02em}
+  .loader-wrap{position:relative; width:160px;height:160px}
+  .loader .step-label{color:var(--muted); font-size:14px; text-align:center; min-height:20px}
+  .check-list{display:grid; gap:8px; width:100%}
+  .check-list li{list-style:none; display:flex; align-items:center; gap:10px; color:var(--muted); font-size:14px; opacity:.5; transition:all .3s}
+  .check-list li.done{opacity:1; color:var(--text)}
+  .check-list li::before{content:""; width:18px;height:18px;border-radius:50%;background:var(--surface); flex:none; transition:background .3s}
+  .check-list li.done::before{background:linear-gradient(135deg,var(--mint),var(--pink)); box-shadow:0 0 0 2px rgba(0,240,181,.25)}
+
+  /* result page */
+  .plan-hero{background:linear-gradient(160deg, rgba(255,46,126,.2), rgba(0,240,181,.1));
+             border:1px solid rgba(255,46,126,.3); border-radius:24px; padding:22px; margin-bottom:16px}
+  .plan-hero .kpis{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px}
+  .kpi{background:rgba(11,11,31,.5); border:1px solid var(--line); border-radius:14px; padding:12px}
+  .kpi .k{font-size:11px; color:var(--muted); letter-spacing:.16em; text-transform:uppercase}
+  .kpi .v{font-size:22px; font-weight:900; letter-spacing:-.02em; margin-top:2px}
+  .kpi .v em{font-style:normal; color:var(--mint); font-size:13px; font-weight:700; margin-left:4px}
+
+  .card{background:var(--surface); border-radius:20px; padding:18px; margin-bottom:14px; border:1px solid var(--line)}
+  .card h3{margin:0 0 10px; font-size:16px; letter-spacing:.02em}
+  .chart{width:100%; height:180px}
+  .legend{display:flex; gap:14px; margin-top:8px; font-size:12px; color:var(--muted)}
+  .legend span{display:inline-flex; align-items:center; gap:6px}
+  .legend i{width:10px;height:10px;border-radius:3px; display:inline-block}
+
+  .weekly{display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-top:10px}
+  .day{background:var(--bg-2); border-radius:10px; padding:8px 4px; text-align:center; font-size:11px; color:var(--muted)}
+  .day.work{background:linear-gradient(160deg, rgba(255,46,126,.25), rgba(255,122,61,.15)); color:#fff; font-weight:700}
+  .day .d{font-size:10px; letter-spacing:.1em; text-transform:uppercase}
+  .day .w{margin-top:2px; font-weight:700}
+
+  .testimonial{display:flex; gap:12px; align-items:flex-start}
+  .testimonial .av{width:44px;height:44px;border-radius:50%;flex:none;
+                   background:linear-gradient(135deg,var(--pink),var(--mint))}
+  .testimonial .stars{color:var(--yellow); font-size:13px; letter-spacing:2px}
+  .testimonial .name{font-weight:700; font-size:13px}
+  .testimonial p{margin:4px 0 0; color:var(--muted); font-size:13px; line-height:1.5}
+
+  /* tag chips */
+  .chips{display:flex; flex-wrap:wrap; gap:8px}
+  .chip{padding:8px 12px; border-radius:999px; background:var(--surface); border:2px solid transparent;
+        font-size:13px; font-weight:600; cursor:pointer; transition:all .18s}
+  .chip.selected{border-color:var(--pink); background:rgba(255,46,126,.1); color:var(--pink)}
+
+  .email-privacy{display:flex; gap:8px; align-items:center; color:var(--muted); font-size:12px; margin-top:10px}
+  .email-privacy i{width:14px;height:14px; background:var(--mint); border-radius:50%; display:inline-block; flex:none}
+
+  /* modal */
+  .toast{position:fixed; left:50%; transform:translateX(-50%); bottom:100px; background:#0B0B1F; border:1px solid var(--pink); color:#fff; padding:12px 16px; border-radius:12px; font-size:13px; z-index:10; opacity:0; transition:opacity .2s; pointer-events:none}
+  .toast.show{opacity:1}
+
+  @media (max-width:400px){ h1{font-size:26px} .hero h1{font-size:34px} }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <div class="topbar">
+    <button class="back" id="back" aria-label="Back">‹</button>
+    <div class="logo">IGNITE</div>
+    <div class="step-count" id="stepCount">1 / 18</div>
+  </div>
+  <div class="progress"><i id="progressBar"></i></div>
+
+  <!-- 0: Welcome -->
+  <section class="screen active" data-step="welcome">
+    <div class="hero">
+      <span class="eyebrow">Personalized for women</span>
+      <h1>Your <em>strongest self</em><br/>starts here.</h1>
+      <p class="sub">Take the 60-second quiz and get a workout plan built around your goals, schedule, and body — no guesswork.</p>
+      <ul class="bullets">
+        <li><i>⚡</i><div><strong>1M+ women</strong><div style="color:var(--muted);font-size:13px">trust IGNITE to train smarter</div></div></li>
+        <li><i>🧬</i><div><strong>Science-backed</strong><div style="color:var(--muted);font-size:13px">tailored to your hormones, cycle &amp; body</div></div></li>
+        <li><i>📱</i><div><strong>Home or gym</strong><div style="color:var(--muted);font-size:13px">15-minute workouts that actually fit your day</div></div></li>
+      </ul>
+      <div class="badge-row">
+        <span class="badge">Featured in FORBES</span>
+        <span class="badge">★ 4.8 / 50k reviews</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 1: Goal -->
+  <section class="screen" data-step="goal">
+    <span class="eyebrow">Step 1 · Your goal</span>
+    <h1>What's your <em>main goal?</em></h1>
+    <p class="sub">We'll shape your program around this from day one.</p>
+    <div class="options" data-field="goal" data-kind="single">
+      <button class="opt" data-value="lose"><span class="ico">🔥</span><div><div class="t">Lose weight</div><div class="d">Burn fat, shed pounds, feel lighter</div></div><span class="check"></span></button>
+      <button class="opt" data-value="tone"><span class="ico">💪</span><div><div class="t">Tone &amp; sculpt</div><div class="d">Lean muscle, defined arms &amp; core</div></div><span class="check"></span></button>
+      <button class="opt" data-value="strength"><span class="ico">🏋️‍♀️</span><div><div class="t">Get stronger</div><div class="d">Progressive lifting, build real strength</div></div><span class="check"></span></button>
+      <button class="opt" data-value="energy"><span class="ico">✨</span><div><div class="t">Energy &amp; wellbeing</div><div class="d">Move daily, reduce stress, sleep better</div></div><span class="check"></span></button>
+      <button class="opt" data-value="postnatal"><span class="ico">🤍</span><div><div class="t">Postnatal recovery</div><div class="d">Safe, progressive return to fitness</div></div><span class="check"></span></button>
+    </div>
+  </section>
+
+  <!-- 2: Current body -->
+  <section class="screen" data-step="bodyNow">
+    <span class="eyebrow">Step 2 · Your body now</span>
+    <h1>Which feels <em>closest to you?</em></h1>
+    <p class="sub">This is private — we use it to calibrate your starting plan.</p>
+    <div class="bodies" data-field="bodyNow" data-kind="single">
+      <button class="body-card" data-value="slim">${''}
+        <svg viewBox="0 0 80 180" aria-hidden="true"><path d="M40 8c6 0 10 5 10 11s-4 11-10 11-10-5-10-11 4-11 10-11zM28 36h24c4 0 7 3 7 7v22l-3 10-4 30-3 55c0 4-3 6-6 6s-6-2-6-6l-3-55-4-30-3-10V43c0-4 3-7 7-7z" fill="#FF7A3D" opacity=".85"/></svg>
+        <div class="label">Slim</div><div class="hint">Lean frame</div>
+      </button>
+      <button class="body-card" data-value="avg">
+        <svg viewBox="0 0 80 180"><path d="M40 8c6 0 10 5 10 11s-4 11-10 11-10-5-10-11 4-11 10-11zM26 36h28c4 0 7 3 7 7v24l-3 11-4 32-4 54c0 4-3 6-6 6s-6-2-6-6l-4-54-4-32-3-11V43c0-4 3-7 7-7z" fill="#FF2E7E" opacity=".85"/></svg>
+        <div class="label">Average</div><div class="hint">A little to lose</div>
+      </button>
+      <button class="body-card" data-value="curvy">
+        <svg viewBox="0 0 80 180"><path d="M40 8c6 0 10 5 10 11s-4 11-10 11-10-5-10-11 4-11 10-11zM24 36h32c5 0 8 3 8 8v26l-4 12-5 34-4 52c0 4-3 6-6 6s-6-2-6-6l-4-52-5-34-4-12V44c0-5 3-8 8-8z" fill="#00F0B5" opacity=".85"/></svg>
+        <div class="label">Curvy</div><div class="hint">Softer around middle</div>
+      </button>
+      <button class="body-card" data-value="plus">
+        <svg viewBox="0 0 80 180"><path d="M40 8c6 0 10 5 10 11s-4 11-10 11-10-5-10-11 4-11 10-11zM20 38h40c5 0 9 4 9 9v28l-5 13-6 36-4 50c0 4-3 6-6 6s-6-2-6-6l-4-50-6-36-5-13V47c0-5 4-9 9-9z" fill="#FFD23F" opacity=".85"/></svg>
+        <div class="label">Fuller</div><div class="hint">More to lose</div>
+      </button>
+    </div>
+  </section>
+
+  <!-- 3: Target body -->
+  <section class="screen" data-step="bodyGoal">
+    <span class="eyebrow">Step 3 · Your goal body</span>
+    <h1>Which is your <em>dream shape?</em></h1>
+    <p class="sub">We'll work backwards from here to build the fastest realistic path.</p>
+    <div class="bodies" data-field="bodyGoal" data-kind="single">
+      <button class="body-card" data-value="lean"><svg viewBox="0 0 80 180"><path d="M40 8c6 0 10 5 10 11s-4 11-10 11-10-5-10-11 4-11 10-11zM28 36h24c4 0 7 3 7 7v22l-3 10-4 30-3 55c0 4-3 6-6 6s-6-2-6-6l-3-55-4-30-3-10V43c0-4 3-7 7-7z" fill="#FF2E7E"/></svg><div class="label">Lean</div><div class="hint">Slim &amp; light</div></button>
+      <button class="body-card" data-value="toned"><svg viewBox="0 0 80 180"><path d="M40 8c6 0 10 5 10 11s-4 11-10 11-10-5-10-11 4-11 10-11zM28 36h24c4 0 7 3 7 7v24l-3 10-4 30-3 55c0 4-3 6-6 6s-6-2-6-6l-3-55-4-30-3-10V43c0-4 3-7 7-7z" fill="#FF7A3D"/><path d="M34 90h12v8H34z" fill="#0B0B1F" opacity=".3"/></svg><div class="label">Toned</div><div class="hint">Soft &amp; defined</div></button>
+      <button class="body-card" data-value="athletic"><svg viewBox="0 0 80 180"><path d="M40 8c6 0 10 5 10 11s-4 11-10 11-10-5-10-11 4-11 10-11zM26 36h28c4 0 7 3 7 7v26l-3 10-4 30-3 55c0 4-3 6-6 6s-6-2-6-6l-3-55-4-30-3-10V43c0-4 3-7 7-7z" fill="#00F0B5"/><path d="M34 86h12v14H34z" fill="#0B0B1F" opacity=".25"/></svg><div class="label">Athletic</div><div class="hint">Visibly strong</div></button>
+      <button class="body-card" data-value="hourglass"><svg viewBox="0 0 80 180"><path d="M40 8c6 0 10 5 10 11s-4 11-10 11-10-5-10-11 4-11 10-11zM26 36h28c4 0 7 3 7 7v22l-3 10-6 20 6 20-3 55c0 4-3 6-6 6s-6-2-6-6l-3-55 6-20-6-20-3-10V43c0-4 3-7 7-7z" fill="#FFD23F"/></svg><div class="label">Hourglass</div><div class="hint">Curves &amp; core</div></button>
+    </div>
+  </section>
+
+  <!-- 4: Problem areas -->
+  <section class="screen" data-step="focus">
+    <span class="eyebrow">Step 4 · Focus zones</span>
+    <h1>Which areas do you want to <em>transform?</em></h1>
+    <p class="sub">Pick as many as you like. Your plan will give them extra attention.</p>
+    <div class="options" data-field="focus" data-kind="multi">
+      <button class="opt" data-value="belly"><span class="ico">🎯</span><div><div class="t">Belly &amp; core</div><div class="d">Tighten, reduce bloat</div></div><span class="check"></span></button>
+      <button class="opt" data-value="butt"><span class="ico">🍑</span><div><div class="t">Glutes</div><div class="d">Lift &amp; shape</div></div><span class="check"></span></button>
+      <button class="opt" data-value="legs"><span class="ico">🦵</span><div><div class="t">Legs &amp; thighs</div><div class="d">Tone inner &amp; outer thigh</div></div><span class="check"></span></button>
+      <button class="opt" data-value="arms"><span class="ico">💪</span><div><div class="t">Arms &amp; shoulders</div><div class="d">Sculpt &amp; banish jiggle</div></div><span class="check"></span></button>
+      <button class="opt" data-value="back"><span class="ico">🔱</span><div><div class="t">Back &amp; posture</div><div class="d">Stand taller, reduce pain</div></div><span class="check"></span></button>
+    </div>
+  </section>
+
+  <!-- 5: Interstitial 1 -->
+  <section class="screen" data-step="insight1">
+    <div class="insight">
+      <div class="big">79%</div>
+      <div class="small">of women who named their focus zones saw visible progress within 6 weeks on IGNITE.</div>
+    </div>
+    <h1>You're not alone, <em>you're in company.</em></h1>
+    <p class="sub">Next, we'll calibrate the intensity so your plan matches your life — not the other way around.</p>
+  </section>
+
+  <!-- 6: Age -->
+  <section class="screen" data-step="age">
+    <span class="eyebrow">Step 5 · Your age</span>
+    <h1>How old <em>are you?</em></h1>
+    <p class="sub">Metabolism, hormones and recovery shift at every stage — we tune your plan accordingly.</p>
+    <div class="options" data-field="age" data-kind="single">
+      <button class="opt" data-value="18-29"><span class="ico">✨</span><div><div class="t">18 – 29</div><div class="d">Build habits that last</div></div><span class="check"></span></button>
+      <button class="opt" data-value="30-39"><span class="ico">🔥</span><div><div class="t">30 – 39</div><div class="d">Balance busy life &amp; fitness</div></div><span class="check"></span></button>
+      <button class="opt" data-value="40-49"><span class="ico">🌿</span><div><div class="t">40 – 49</div><div class="d">Protect metabolism &amp; joints</div></div><span class="check"></span></button>
+      <button class="opt" data-value="50+"><span class="ico">🌸</span><div><div class="t">50 +</div><div class="d">Strength, mobility &amp; energy</div></div><span class="check"></span></button>
+    </div>
+  </section>
+
+  <!-- 7: Fitness level -->
+  <section class="screen" data-step="level">
+    <span class="eyebrow">Step 6 · Fitness level</span>
+    <h1>How <em>active</em> are you right now?</h1>
+    <p class="sub">Be honest — this sets your week-1 intensity.</p>
+    <div class="options" data-field="level" data-kind="single">
+      <button class="opt" data-value="sedentary"><span class="ico">🛋️</span><div><div class="t">Mostly sedentary</div><div class="d">Desk job, little exercise</div></div><span class="check"></span></button>
+      <button class="opt" data-value="light"><span class="ico">🚶‍♀️</span><div><div class="t">Lightly active</div><div class="d">Walk a few times a week</div></div><span class="check"></span></button>
+      <button class="opt" data-value="moderate"><span class="ico">🏃‍♀️</span><div><div class="t">Moderately active</div><div class="d">Workout 2–3×/week</div></div><span class="check"></span></button>
+      <button class="opt" data-value="athletic"><span class="ico">🔥</span><div><div class="t">Very active</div><div class="d">Workout 4+×/week</div></div><span class="check"></span></button>
+    </div>
+  </section>
+
+  <!-- 8: Location -->
+  <section class="screen" data-step="place">
+    <span class="eyebrow">Step 7 · Workout location</span>
+    <h1>Where will you <em>train?</em></h1>
+    <div class="options" data-field="place" data-kind="single">
+      <button class="opt" data-value="home"><span class="ico">🏠</span><div><div class="t">At home</div><div class="d">Minimal or no equipment</div></div><span class="check"></span></button>
+      <button class="opt" data-value="gym"><span class="ico">🏋️‍♀️</span><div><div class="t">At the gym</div><div class="d">Full equipment access</div></div><span class="check"></span></button>
+      <button class="opt" data-value="both"><span class="ico">🔄</span><div><div class="t">Both</div><div class="d">Mix it up</div></div><span class="check"></span></button>
+      <button class="opt" data-value="outdoor"><span class="ico">🌳</span><div><div class="t">Outdoor</div><div class="d">Parks, running, cycling</div></div><span class="check"></span></button>
+    </div>
+  </section>
+
+  <!-- 9: Time per session -->
+  <section class="screen" data-step="time">
+    <span class="eyebrow">Step 8 · Your time</span>
+    <h1>How long per session, <em>honestly?</em></h1>
+    <p class="sub">Short sessions still work. We'll pick density over length.</p>
+    <div class="options" data-field="time" data-kind="single">
+      <button class="opt" data-value="15"><span class="ico">⚡</span><div><div class="t">15 minutes</div><div class="d">Quick burns, bite-sized</div></div><span class="check"></span></button>
+      <button class="opt" data-value="30"><span class="ico">🕐</span><div><div class="t">30 minutes</div><div class="d">The sweet spot</div></div><span class="check"></span></button>
+      <button class="opt" data-value="45"><span class="ico">🕓</span><div><div class="t">45 minutes</div><div class="d">Serious progress</div></div><span class="check"></span></button>
+      <button class="opt" data-value="60"><span class="ico">🏅</span><div><div class="t">60 +</div><div class="d">All-in mode</div></div><span class="check"></span></button>
+    </div>
+  </section>
+
+  <!-- 10: Lifestyle (multi) -->
+  <section class="screen" data-step="lifestyle">
+    <span class="eyebrow">Step 9 · Lifestyle</span>
+    <h1>Anything we should <em>know about you?</em></h1>
+    <p class="sub">Optional. Helps us make your plan genuinely realistic.</p>
+    <div class="chips" data-field="lifestyle" data-kind="multi">
+      <button class="chip" data-value="stress">High stress</button>
+      <button class="chip" data-value="sleep">Poor sleep</button>
+      <button class="chip" data-value="desk">Desk job</button>
+      <button class="chip" data-value="mom">Busy mom</button>
+      <button class="chip" data-value="cycle">Track my cycle</button>
+      <button class="chip" data-value="peri">Perimenopause</button>
+      <button class="chip" data-value="joints">Sensitive joints</button>
+      <button class="chip" data-value="back-pain">Back pain</button>
+      <button class="chip" data-value="beginner">Total beginner</button>
+    </div>
+  </section>
+
+  <!-- 11: Interstitial 2 -->
+  <section class="screen" data-step="insight2">
+    <div class="insight">
+      <div class="big">3×</div>
+      <div class="small">women who log these lifestyle factors are 3× more likely to hit their first milestone.</div>
+    </div>
+    <h1>We hear you. <em>Your plan adapts.</em></h1>
+    <p class="sub">If you slip up, miss a day, or hormones shift — IGNITE recalibrates. No guilt, just progress.</p>
+  </section>
+
+  <!-- 12: Height -->
+  <section class="screen" data-step="height">
+    <span class="eyebrow">Step 10 · Height</span>
+    <h1>How <em>tall</em> are you?</h1>
+    <div class="toggle-row" id="hToggle">
+      <button data-unit="cm" class="on">CM</button><button data-unit="ft">FT</button>
+    </div>
+    <div class="inputs">
+      <div class="field"><span class="label">Height</span>
+        <input id="heightInput" type="number" inputmode="decimal" placeholder="165" min="120" max="220" />
+        <span class="unit" id="heightUnit">CM</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 13: Current weight -->
+  <section class="screen" data-step="weight">
+    <span class="eyebrow">Step 11 · Current weight</span>
+    <h1>And your <em>current weight?</em></h1>
+    <div class="toggle-row" id="wToggle">
+      <button data-unit="kg" class="on">KG</button><button data-unit="lb">LB</button>
+    </div>
+    <div class="inputs">
+      <div class="field"><span class="label">Weight</span>
+        <input id="weightInput" type="number" inputmode="decimal" placeholder="65" min="30" max="200" />
+        <span class="unit" id="weightUnit">KG</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 14: Target weight -->
+  <section class="screen" data-step="target">
+    <span class="eyebrow">Step 12 · Target weight</span>
+    <h1>What's your <em>goal weight?</em></h1>
+    <p class="sub">We'll only recommend a healthy, sustainable rate of change.</p>
+    <div class="inputs">
+      <div class="field"><span class="label">Target</span>
+        <input id="targetInput" type="number" inputmode="decimal" placeholder="58" min="30" max="200" />
+        <span class="unit" id="targetUnit">KG</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 15: Target date event -->
+  <section class="screen" data-step="event">
+    <span class="eyebrow">Step 13 · Motivation</span>
+    <h1>Anything you're <em>working toward?</em></h1>
+    <p class="sub">We'll use this to set a realistic milestone.</p>
+    <div class="options" data-field="event" data-kind="single">
+      <button class="opt" data-value="vacation"><span class="ico">🌴</span><div><div class="t">Vacation / beach</div><div class="d">Feel amazing in swimwear</div></div><span class="check"></span></button>
+      <button class="opt" data-value="wedding"><span class="ico">💍</span><div><div class="t">Wedding</div><div class="d">Look &amp; feel radiant</div></div><span class="check"></span></button>
+      <button class="opt" data-value="health"><span class="ico">🩺</span><div><div class="t">Health check-in</div><div class="d">Doctor-approved goals</div></div><span class="check"></span></button>
+      <button class="opt" data-value="none"><span class="ico">💫</span><div><div class="t">Just for me</div><div class="d">Long-term lifestyle</div></div><span class="check"></span></button>
+    </div>
+  </section>
+
+  <!-- 16: Email capture -->
+  <section class="screen" data-step="email">
+    <span class="eyebrow">Last step · Get your plan</span>
+    <h1>Where should we <em>send your plan?</em></h1>
+    <p class="sub">We'll email a backup copy and save your progress across devices.</p>
+    <div class="inputs">
+      <div class="field" style="padding-top:16px">
+        <input id="emailInput" type="email" placeholder="you@email.com" style="font-size:18px; font-weight:600" autocomplete="email" />
+      </div>
+    </div>
+    <div class="email-privacy"><i></i> We never share your data. Unsubscribe anytime.</div>
+  </section>
+
+  <!-- 17: Analyzing loader -->
+  <section class="screen" data-step="loading">
+    <div class="loader">
+      <div class="loader-wrap">
+        <div class="ring"></div>
+        <div class="pct" id="loaderPct">0%</div>
+      </div>
+      <div class="step-label" id="loaderStep">Calibrating your starting point…</div>
+      <ul class="check-list" id="checkList">
+        <li data-at="20">Analyzing your goals &amp; body type</li>
+        <li data-at="45">Matching workouts to your schedule</li>
+        <li data-at="70">Adjusting for your focus zones</li>
+        <li data-at="95">Building your 12-week roadmap</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 18: Result plan -->
+  <section class="screen" data-step="result">
+    <span class="eyebrow">Your personalized plan</span>
+    <h1 id="resultTitle">Hey — here's your <em>IGNITE plan.</em></h1>
+    <p class="sub" id="resultSub">Based on your goals, we project you'll hit your first milestone in about 8 weeks.</p>
+
+    <div class="plan-hero">
+      <div style="display:flex;align-items:center;gap:10px">
+        <strong style="font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--pink)">Projection</strong>
+        <span style="font-size:12px;color:var(--muted)">Realistic, sustainable pace</span>
+      </div>
+      <div class="kpis">
+        <div class="kpi"><div class="k">Start</div><div class="v" id="kpiStart">—</div></div>
+        <div class="kpi"><div class="k">Goal</div><div class="v" id="kpiGoal">—</div></div>
+        <div class="kpi"><div class="k">Timeline</div><div class="v" id="kpiWeeks">—</div></div>
+        <div class="kpi"><div class="k">Per week</div><div class="v" id="kpiPace">—</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Your projected progress</h3>
+      <svg class="chart" id="chart" viewBox="0 0 320 180" preserveAspectRatio="none"></svg>
+      <div class="legend">
+        <span><i style="background:var(--pink)"></i>Weight</span>
+        <span><i style="background:var(--mint)"></i>Energy</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Your weekly rhythm</h3>
+      <div class="weekly" id="weekly"></div>
+      <p class="sub" style="margin:12px 0 0;font-size:13px" id="weeklyNote">Balanced mix of strength, cardio &amp; mobility — built around your chosen session length.</p>
+    </div>
+
+    <div class="card">
+      <h3>What's included</h3>
+      <ul style="list-style:none;padding:0;margin:0;display:grid;gap:10px">
+        <li style="display:flex;gap:10px"><span style="color:var(--mint)">✓</span><div><strong>12-week IGNITE roadmap</strong><div style="color:var(--muted);font-size:13px">Progressive program that adapts weekly</div></div></li>
+        <li style="display:flex;gap:10px"><span style="color:var(--mint)">✓</span><div><strong>Follow-along video workouts</strong><div style="color:var(--muted);font-size:13px">Certified women's fitness coaches</div></div></li>
+        <li style="display:flex;gap:10px"><span style="color:var(--mint)">✓</span><div><strong>Cycle &amp; hormone-aware plan</strong><div style="color:var(--muted);font-size:13px">Intensity tuned to your body's phases</div></div></li>
+        <li style="display:flex;gap:10px"><span style="color:var(--mint)">✓</span><div><strong>Progress tracking &amp; reminders</strong><div style="color:var(--muted);font-size:13px">Stay consistent without the burnout</div></div></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="testimonial">
+        <div class="av"></div>
+        <div>
+          <div class="stars">★★★★★</div>
+          <div class="name">Maya, 34</div>
+          <p>"Down 11 lbs in 10 weeks and I actually look forward to my workouts. The plan flexes with my schedule — finally."</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA footer -->
+  <div class="cta" id="cta">
+    <button class="primary" id="primaryBtn">Get Started</button>
+    <div class="fineprint" id="fineprint">Takes about 60 seconds · Free to start</div>
+  </div>
+
+  <div class="toast" id="toast">Pick at least one option</div>
+
+</div>
+
+<script>
+(() => {
+  // ---------- state ----------
+  const steps = ['welcome','goal','bodyNow','bodyGoal','focus','insight1','age','level','place','time','lifestyle','insight2','height','weight','target','event','email','loading','result'];
+  const data = {
+    goal:null, bodyNow:null, bodyGoal:null,
+    focus:[], age:null, level:null, place:null, time:null,
+    lifestyle:[], height:null, heightUnit:'cm',
+    weight:null, weightUnit:'kg', target:null,
+    event:null, email:null,
+  };
+  let idx = 0;
+
+  const $  = s => document.querySelector(s);
+  const $$ = s => Array.from(document.querySelectorAll(s));
+  const screens = $$('.screen');
+  const progressBar = $('#progressBar');
+  const stepCount = $('#stepCount');
+  const backBtn = $('#back');
+  const primaryBtn = $('#primaryBtn');
+  const fineprint = $('#fineprint');
+  const toast = $('#toast');
+
+  // ---------- navigation ----------
+  function render(){
+    screens.forEach((el,i)=>el.classList.toggle('active', i===idx));
+    const pct = (idx / (steps.length-1)) * 100;
+    progressBar.style.width = pct + '%';
+    stepCount.textContent = (idx+1) + ' / ' + steps.length;
+    backBtn.disabled = idx===0 || idx===steps.length-1 || idx===steps.length-2;
+    const step = steps[idx];
+
+    // CTA visibility + label
+    const hideCtaSteps = ['loading','result'];
+    document.getElementById('cta').style.display = hideCtaSteps.includes(step) ? 'none' : 'block';
+    if(step==='welcome'){ primaryBtn.textContent = 'Start my 60-sec quiz →'; fineprint.textContent = 'Takes about 60 seconds · Free to start'; }
+    else if(step==='email'){ primaryBtn.textContent = 'Build my IGNITE plan'; fineprint.textContent = '🔒 Your data is safe. Never shared.'; }
+    else { primaryBtn.textContent = 'Continue'; fineprint.textContent = ''; }
+
+    primaryBtn.disabled = !canAdvance(step);
+    window.scrollTo({top:0,behavior:'instant'});
+    if(step==='loading') startLoading();
+    if(step==='result') renderResult();
+  }
+
+  function canAdvance(step){
+    switch(step){
+      case 'welcome': return true;
+      case 'goal': return !!data.goal;
+      case 'bodyNow': return !!data.bodyNow;
+      case 'bodyGoal': return !!data.bodyGoal;
+      case 'focus': return data.focus.length>0;
+      case 'insight1': return true;
+      case 'age': return !!data.age;
+      case 'level': return !!data.level;
+      case 'place': return !!data.place;
+      case 'time': return !!data.time;
+      case 'lifestyle': return true; // optional
+      case 'insight2': return true;
+      case 'height': return !!data.height && data.height>0;
+      case 'weight': return !!data.weight && data.weight>0;
+      case 'target': return !!data.target && data.target>0;
+      case 'event': return !!data.event;
+      case 'email': return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email||'');
+      default: return true;
+    }
+  }
+
+  function next(){
+    const step = steps[idx];
+    if(!canAdvance(step)){ flash('Please make a selection'); return; }
+    idx = Math.min(idx+1, steps.length-1);
+    render();
+  }
+  function prev(){ idx=Math.max(0, idx-1); render(); }
+  function flash(msg){ toast.textContent = msg; toast.classList.add('show'); clearTimeout(flash._t); flash._t=setTimeout(()=>toast.classList.remove('show'),1600); }
+
+  backBtn.addEventListener('click', prev);
+  primaryBtn.addEventListener('click', next);
+
+  // ---------- option handlers ----------
+  $$('[data-field]').forEach(group => {
+    const field = group.dataset.field;
+    const kind = group.dataset.kind;
+    group.addEventListener('click', e => {
+      const btn = e.target.closest('[data-value]');
+      if(!btn) return;
+      const v = btn.dataset.value;
+      if(kind==='single'){
+        data[field] = v;
+        group.querySelectorAll('[data-value]').forEach(b=>b.classList.toggle('selected', b===btn));
+        // auto-advance on single selects (feels like Mad Muscles)
+        setTimeout(next, 260);
+      } else {
+        const arr = data[field];
+        const i = arr.indexOf(v);
+        if(i>-1) arr.splice(i,1); else arr.push(v);
+        btn.classList.toggle('selected');
+        primaryBtn.disabled = !canAdvance(steps[idx]);
+      }
+    });
+  });
+
+  // ---------- inputs ----------
+  function bindInput(id, key){
+    const el = document.getElementById(id);
+    el.addEventListener('input', ()=>{ data[key] = parseFloat(el.value)||null; primaryBtn.disabled = !canAdvance(steps[idx]); });
+  }
+  bindInput('heightInput','height');
+  bindInput('weightInput','weight');
+  bindInput('targetInput','target');
+  document.getElementById('emailInput').addEventListener('input', e=>{
+    data.email = e.target.value.trim();
+    primaryBtn.disabled = !canAdvance(steps[idx]);
+  });
+
+  // unit toggles
+  $('#hToggle').addEventListener('click', e=>{
+    const b = e.target.closest('button[data-unit]'); if(!b) return;
+    $('#hToggle').querySelectorAll('button').forEach(x=>x.classList.toggle('on', x===b));
+    data.heightUnit = b.dataset.unit;
+    $('#heightUnit').textContent = b.dataset.unit.toUpperCase();
+    $('#heightInput').placeholder = b.dataset.unit==='cm' ? '165' : '5.4';
+  });
+  $('#wToggle').addEventListener('click', e=>{
+    const b = e.target.closest('button[data-unit]'); if(!b) return;
+    $('#wToggle').querySelectorAll('button').forEach(x=>x.classList.toggle('on', x===b));
+    data.weightUnit = b.dataset.unit;
+    $('#weightUnit').textContent = b.dataset.unit.toUpperCase();
+    $('#targetUnit').textContent = b.dataset.unit.toUpperCase();
+    $('#weightInput').placeholder = b.dataset.unit==='kg' ? '65' : '145';
+    $('#targetInput').placeholder = b.dataset.unit==='kg' ? '58' : '130';
+  });
+
+  // keyboard
+  document.addEventListener('keydown', e=>{
+    if(e.key==='Enter' && !primaryBtn.disabled) next();
+    if(e.key==='Escape') prev();
+  });
+
+  // ---------- loader ----------
+  function startLoading(){
+    const pctEl = $('#loaderPct'); const stepEl = $('#loaderStep');
+    const items = $$('#checkList li');
+    const labels = [
+      'Calibrating your starting point…',
+      'Matching workouts to your schedule…',
+      'Adjusting for your focus zones…',
+      'Building your 12-week roadmap…',
+      'Finalizing your plan…'
+    ];
+    let p = 0;
+    clearInterval(startLoading._t);
+    startLoading._t = setInterval(()=>{
+      p = Math.min(100, p + (Math.random()*3 + 1.5));
+      pctEl.textContent = Math.floor(p) + '%';
+      const li = Math.floor(p/25);
+      stepEl.textContent = labels[Math.min(li,labels.length-1)];
+      items.forEach(el=>el.classList.toggle('done', p >= +el.dataset.at));
+      if(p>=100){
+        clearInterval(startLoading._t);
+        setTimeout(()=>{ idx = steps.indexOf('result'); render(); }, 500);
+      }
+    }, 90);
+  }
+
+  // ---------- result ----------
+  function renderResult(){
+    const isKg = data.weightUnit==='kg';
+    const unit = isKg ? 'kg' : 'lb';
+    const start = data.weight||(isKg?68:150);
+    const goal  = data.target||(isKg?60:132);
+    const lossPerWeek = isKg ? 0.5 : 1.1; // conservative healthy pace
+    const diff = Math.max(0.5, Math.abs(start-goal));
+    const weeks = Math.max(6, Math.min(24, Math.round(diff / lossPerWeek)));
+    const pace = (diff/weeks).toFixed(1);
+
+    $('#kpiStart').innerHTML = `${start.toFixed(1)} <em>${unit}</em>`;
+    $('#kpiGoal').innerHTML  = `${goal.toFixed(1)} <em>${unit}</em>`;
+    $('#kpiWeeks').innerHTML = `${weeks} <em>weeks</em>`;
+    $('#kpiPace').innerHTML  = `${pace} <em>${unit}/wk</em>`;
+
+    // goal-based copy
+    const goalCopy = {
+      lose: `You're on track to hit <em>${goal.toFixed(1)} ${unit}</em> in about <em>${weeks} weeks</em>.`,
+      tone: `You'll feel visibly more defined in <em>~${Math.max(4, Math.round(weeks*0.6))} weeks</em>, with strong results by <em>${weeks} weeks</em>.`,
+      strength: `Expect meaningful strength gains in <em>4 weeks</em> and a new PR by week <em>${weeks}</em>.`,
+      energy: `Most women feel a real shift in energy within <em>2 weeks</em> on IGNITE.`,
+      postnatal: `A safe, progressive return — feeling rebuilt and strong by <em>${weeks} weeks</em>.`,
+    };
+    $('#resultSub').innerHTML = (goalCopy[data.goal]||goalCopy.lose);
+    const name = (data.email||'').split('@')[0];
+    if(name) $('#resultTitle').innerHTML = `Hey ${name.charAt(0).toUpperCase()+name.slice(1)} — here's your <em>IGNITE plan.</em>`;
+
+    drawChart(start, goal, weeks);
+    drawWeekly();
+  }
+
+  function drawChart(start, goal, weeks){
+    const svg = document.getElementById('chart');
+    const W = 320, H = 180, pad = 22;
+    const points = [];
+    const n = weeks+1;
+    // slight S-curve: realistic progress with a plateau mid-way
+    for(let i=0;i<n;i++){
+      const t = i/(n-1);
+      const eased = t<0.5 ? 2*t*t : 1 - Math.pow(-2*t+2,2)/2;
+      const y = start + (goal-start)*eased + (i>0 && i<n-1 ? (Math.random()-0.5)*0.25 : 0);
+      points.push([i,y]);
+    }
+    const xs = points.map(p=>p[0]);
+    const ys = points.map(p=>p[1]);
+    const minY = Math.min(...ys, goal)-1, maxY = Math.max(...ys, start)+1;
+    const sx = i => pad + (i/(n-1))*(W-pad*2);
+    const sy = v => pad + (1-(v-minY)/(maxY-minY))*(H-pad*2);
+
+    // path
+    let d = '';
+    points.forEach(([i,v],k)=>{ d += (k===0?'M':'L') + sx(i).toFixed(1) + ' ' + sy(v).toFixed(1) + ' '; });
+    // area fill path
+    let f = d + `L ${sx(n-1).toFixed(1)} ${H-pad} L ${sx(0).toFixed(1)} ${H-pad} Z`;
+
+    // energy line — inverted correlation
+    let e = '';
+    for(let i=0;i<n;i++){
+      const t = i/(n-1);
+      const v = 30 + t*70 + Math.sin(t*Math.PI*2)*4;
+      e += (i===0?'M':'L') + sx(i).toFixed(1) + ' ' + (pad + (1-v/100)*(H-pad*2)).toFixed(1) + ' ';
+    }
+
+    // gridlines
+    let grid = '';
+    for(let g=0; g<4; g++){
+      const yy = pad + (g/3)*(H-pad*2);
+      grid += `<line x1="${pad}" x2="${W-pad}" y1="${yy}" y2="${yy}" stroke="#2B2B52" stroke-dasharray="2 4" stroke-width="1"/>`;
+    }
+
+    svg.innerHTML = `
+      <defs>
+        <linearGradient id="areaG" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stop-color="#FF2E7E" stop-opacity=".45"/>
+          <stop offset="100%" stop-color="#FF2E7E" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      ${grid}
+      <path d="${f}" fill="url(#areaG)"/>
+      <path d="${d}" fill="none" stroke="#FF2E7E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="${e}" fill="none" stroke="#00F0B5" stroke-width="2" stroke-dasharray="4 4" stroke-linecap="round"/>
+      <circle cx="${sx(0).toFixed(1)}" cy="${sy(start).toFixed(1)}" r="5" fill="#FFD23F"/>
+      <circle cx="${sx(n-1).toFixed(1)}" cy="${sy(goal).toFixed(1)}" r="6" fill="#00F0B5" stroke="#0B0B1F" stroke-width="2"/>
+      <text x="${sx(0)+8}" y="${sy(start)-8}" fill="#FFD23F" font-size="11" font-weight="700">START</text>
+      <text x="${sx(n-1)-12}" y="${sy(goal)-10}" fill="#00F0B5" font-size="11" font-weight="700" text-anchor="end">GOAL</text>
+    `;
+  }
+
+  function drawWeekly(){
+    const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+    // pick 3-5 workout days based on level+time
+    const level = data.level || 'light';
+    const count = ({sedentary:3, light:4, moderate:4, athletic:5})[level] || 4;
+    const patterns = {
+      3:[0,2,5], 4:[0,2,4,5], 5:[0,1,3,4,5], 6:[0,1,2,3,4,5]
+    };
+    const workoutDays = new Set(patterns[count] || patterns[4]);
+    const wk = document.getElementById('weekly');
+    const focus = data.focus||[];
+    const labels = ['LB','Core','UB','HIIT','Glutes','Mob','Rest'];
+    if(focus.includes('butt')) labels[4]='Glutes';
+    if(focus.includes('belly')) labels[1]='Core';
+    if(focus.includes('arms')) labels[2]='Arms';
+    wk.innerHTML = days.map((d,i)=>{
+      const isWork = workoutDays.has(i);
+      const lab = isWork ? labels[i%labels.length] : 'Rest';
+      return `<div class="day ${isWork?'work':''}"><div class="d">${d}</div><div class="w">${lab}</div></div>`;
+    }).join('');
+    const timeTxt = ({15:'15-min', 30:'30-min', 45:'45-min', 60:'60-min'})[data.time] || '30-min';
+    const placeTxt = ({home:'home', gym:'gym', both:'home + gym', outdoor:'outdoor'})[data.place] || 'mixed';
+    document.getElementById('weeklyNote').textContent =
+      `${count} workout days · ${timeTxt} sessions · ${placeTxt} setting — tuned to your focus zones.`;
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>

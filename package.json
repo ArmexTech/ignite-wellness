@@ -1,0 +1,15 @@
+{
+  "name": "ignite-wellness",
+  "version": "1.0.0",
+  "description": "IGNITE — personalized women's wellness app",
+  "private": true,
+  "scripts": {
+    "start": "serve -s . -l tcp://0.0.0.0:${PORT:-3000}"
+  },
+  "dependencies": {
+    "serve": "^14.2.3"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

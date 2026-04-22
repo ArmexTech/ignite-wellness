@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="description" content="IGNITE — A personalized women's fitness plan built around your body, goals, and schedule. Take the 60-second quiz." />
+<meta property="og:title" content="IGNITE — Fitness tailored to you" />
+<meta property="og:description" content="Your strongest self starts with a plan built just for you. Take the quiz." />
+<meta property="og:type" content="website" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='72' font-size='80' text-anchor='middle'%3E🔥%3C/text%3E%3C/svg%3E" />
+<title>IGNITE — Personalized fitness for women</title>
+<style>
+  :root{
+    --bg:#0B0B1F; --bg-2:#14142E; --surface:#1A1A3A; --surface-hi:#232348;
+    --line:#2B2B52; --text:#FFFFFF; --muted:#A6A6C6;
+    --pink:#FF2E7E; --orange:#FF7A3D; --mint:#00F0B5; --yellow:#FFD23F;
+    --shadow:0 20px 60px rgba(255,46,126,.25);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;}
+  a{color:inherit;text-decoration:none}
+  button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+  img{max-width:100%;display:block}
+
+  .wrap{max-width:1160px; margin:0 auto; padding:0 24px}
+  .btn{display:inline-flex;align-items:center;gap:8px; padding:14px 22px; border-radius:14px;
+       font-weight:800; font-size:15px; letter-spacing:.02em; transition:transform .15s, box-shadow .15s}
+  .btn-primary{background:linear-gradient(135deg,var(--pink),var(--orange) 70%,var(--yellow));
+               color:#0B0B1F; box-shadow:var(--shadow)}
+  .btn-primary:hover{transform:translateY(-1px); box-shadow:0 26px 70px rgba(255,46,126,.4)}
+  .btn-ghost{background:var(--surface); color:#fff}
+  .btn-ghost:hover{background:var(--surface-hi)}
+  .btn-big{padding:18px 30px; font-size:17px; border-radius:16px}
+
+  /* Nav */
+  nav{position:sticky; top:0; z-index:20; backdrop-filter:saturate(1.4) blur(10px);
+      background:rgba(11,11,31,.72); border-bottom:1px solid rgba(43,43,82,.6)}
+  nav .inner{display:flex;align-items:center;gap:20px; padding:14px 24px; max-width:1160px; margin:0 auto}
+  .brand{font-weight:900; letter-spacing:.28em; font-size:17px;
+         background:linear-gradient(90deg,var(--pink),var(--orange) 60%,var(--yellow));
+         -webkit-background-clip:text; background-clip:text; color:transparent}
+  .nav-links{display:flex; gap:22px; margin-left:24px}
+  .nav-links a{color:var(--muted); font-size:14px; font-weight:600}
+  .nav-links a:hover{color:#fff}
+  nav .spacer{flex:1}
+  nav .btn{padding:10px 16px; font-size:14px}
+  @media (max-width:720px){ .nav-links{display:none} }
+
+  /* Hero */
+  .hero{position:relative; padding:72px 0 60px; overflow:hidden}
+  .hero::before{content:""; position:absolute; inset:-40% -20% auto -20%; height:640px;
+                background:radial-gradient(closest-side, rgba(255,46,126,.22), transparent 70%);
+                filter:blur(10px); pointer-events:none}
+  .hero-grid{display:grid; grid-template-columns:1.1fr .9fr; gap:48px; align-items:center; position:relative}
+  @media (max-width:900px){ .hero-grid{grid-template-columns:1fr; gap:32px} .hero{padding:48px 0 40px}}
+  .eyebrow{display:inline-block; font-size:11px; letter-spacing:.22em; font-weight:800; text-transform:uppercase;
+           color:var(--pink); background:rgba(255,46,126,.12); padding:6px 10px; border-radius:999px; margin-bottom:20px}
+  h1.headline{font-size:72px; line-height:1; letter-spacing:-.03em; margin:0 0 20px; font-weight:900}
+  h1.headline em{font-style:normal;
+                 background:linear-gradient(90deg,var(--pink),var(--orange) 70%,var(--yellow));
+                 -webkit-background-clip:text; background-clip:text; color:transparent}
+  @media (max-width:720px){ h1.headline{font-size:48px} }
+  .lead{color:var(--muted); font-size:19px; line-height:1.55; margin:0 0 28px; max-width:540px}
+  .cta-row{display:flex; gap:12px; align-items:center; flex-wrap:wrap}
+  .cta-row .tip{color:var(--muted); font-size:13px}
+  .stars{color:var(--yellow); letter-spacing:3px; font-size:14px}
+  .ratings{display:flex; gap:14px; align-items:center; margin-top:24px; color:var(--muted); font-size:13px}
+  .ratings strong{color:#fff}
+  .ratings .divider{width:1px;height:18px;background:var(--line)}
+  .avatars{display:flex}
+  .avatars span{width:30px;height:30px;border-radius:50%;border:2px solid var(--bg);
+                margin-left:-8px; display:inline-block}
+  .avatars span:nth-child(1){background:linear-gradient(135deg,var(--pink),var(--orange))}
+  .avatars span:nth-child(2){background:linear-gradient(135deg,var(--mint),var(--pink))}
+  .avatars span:nth-child(3){background:linear-gradient(135deg,var(--yellow),var(--pink))}
+  .avatars span:nth-child(4){background:linear-gradient(135deg,var(--orange),var(--mint))}
+
+  /* Phone mockup */
+  .phone{position:relative; margin-left:auto; width:320px; height:640px; border-radius:44px;
+         background:var(--bg-2); border:10px solid #1a1a35;
+         box-shadow:0 40px 100px rgba(255,46,126,.25), 0 0 0 1px rgba(255,46,126,.2) inset}
+  .phone::before{content:""; position:absolute; left:50%; top:8px; width:100px; height:22px;
+                 background:#0B0B1F; border-radius:12px; transform:translateX(-50%)}
+  .phone .screen{position:absolute; inset:0; border-radius:36px; overflow:hidden;
+                 background:radial-gradient(600px 300px at 50% -10%, rgba(255,46,126,.22), transparent 60%), var(--bg);
+                 padding:50px 18px 18px; display:flex; flex-direction:column; gap:14px}
+  .phone h2{margin:0; font-size:20px; letter-spacing:-.01em}
+  .phone h2 em{font-style:normal;
+               background:linear-gradient(90deg,var(--pink),var(--yellow));
+               -webkit-background-clip:text; background-clip:text; color:transparent}
+  .phone .pill{display:inline-block; font-size:10px; letter-spacing:.2em; font-weight:800; text-transform:uppercase;
+               color:var(--pink); background:rgba(255,46,126,.12); padding:5px 9px; border-radius:999px; align-self:flex-start}
+  .phone .ch-card{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:12px}
+  .phone .ch-card small{color:var(--muted); font-size:11px; letter-spacing:.12em; text-transform:uppercase}
+  .phone .ch-card .v{font-size:22px; font-weight:900; margin-top:2px; letter-spacing:-.02em}
+  .phone .ch-row{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+  .phone .bar{height:8px; border-radius:4px; background:var(--bg-2); overflow:hidden; margin-top:10px}
+  .phone .bar i{display:block;height:100%;width:62%;
+                background:linear-gradient(90deg,var(--pink),var(--yellow))}
+  .phone .week{display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-top:8px}
+  .phone .week div{padding:6px 0; text-align:center; font-size:10px; color:var(--muted); background:var(--bg-2); border-radius:6px}
+  .phone .week div.on{color:#fff; font-weight:800;
+                      background:linear-gradient(160deg, rgba(255,46,126,.3), rgba(255,122,61,.2))}
+
+  /* Logo bar */
+  .logos{padding:30px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); margin-top:40px}
+  .logos .row{display:flex; justify-content:space-between; flex-wrap:wrap; gap:16px; color:var(--muted);
+              font-size:12px; letter-spacing:.2em; font-weight:800; text-transform:uppercase; opacity:.8}
+
+  /* Generic section */
+  section.block{padding:90px 0}
+  @media (max-width:720px){ section.block{padding:64px 0} }
+  .section-head{text-align:center; max-width:760px; margin:0 auto 44px}
+  .section-head h2{font-size:48px; line-height:1.05; letter-spacing:-.02em; margin:0 0 14px; font-weight:900}
+  .section-head h2 em{font-style:normal;
+                      background:linear-gradient(90deg,var(--pink),var(--orange) 70%,var(--yellow));
+                      -webkit-background-clip:text; background-clip:text; color:transparent}
+  @media (max-width:720px){ .section-head h2{font-size:34px} }
+  .section-head p{color:var(--muted); font-size:17px; line-height:1.55; margin:0}
+
+  /* Benefits */
+  .benefits{display:grid; grid-template-columns:repeat(3,1fr); gap:20px}
+  @media (max-width:900px){ .benefits{grid-template-columns:1fr} }
+  .benefit{background:var(--surface); border:1px solid var(--line); border-radius:22px; padding:28px}
+  .benefit .ico{width:52px;height:52px;border-radius:14px;display:inline-flex;align-items:center;justify-content:center;
+                font-size:26px; background:linear-gradient(135deg, rgba(255,46,126,.2), rgba(0,240,181,.15)); margin-bottom:14px}
+  .benefit h3{margin:0 0 6px; font-size:20px; letter-spacing:-.01em}
+  .benefit p{margin:0; color:var(--muted); font-size:15px; line-height:1.55}
+
+  /* How it works */
+  .steps{display:grid; grid-template-columns:repeat(3,1fr); gap:20px; counter-reset:step}
+  @media (max-width:900px){ .steps{grid-template-columns:1fr} }
+  .step{position:relative; padding:28px; border-radius:22px; background:var(--surface); border:1px solid var(--line)}
+  .step::before{counter-increment:step; content:counter(step,decimal-leading-zero);
+                position:absolute; top:18px; right:20px; font-size:48px; font-weight:900; letter-spacing:-.03em;
+                background:linear-gradient(135deg,var(--pink),var(--orange));
+                -webkit-background-clip:text; background-clip:text; color:transparent; opacity:.55}
+  .step h3{margin:0 0 6px; font-size:20px}
+  .step p{margin:0; color:var(--muted); font-size:15px; line-height:1.55}
+
+  /* Stats strip */
+  .stats{background:linear-gradient(160deg, rgba(255,46,126,.16), rgba(255,122,61,.08));
+         border:1px solid rgba(255,46,126,.25); border-radius:26px; padding:40px; text-align:center;
+         display:grid; grid-template-columns:repeat(4,1fr); gap:24px}
+  @media (max-width:720px){ .stats{grid-template-columns:1fr 1fr; padding:28px} }
+  .stat .big{font-size:52px; font-weight:900; letter-spacing:-.03em;
+             background:linear-gradient(90deg,var(--pink),var(--yellow));
+             -webkit-background-clip:text; background-clip:text; color:transparent; line-height:1}
+  .stat .cap{margin-top:6px; color:var(--muted); font-size:13px; letter-spacing:.1em; text-transform:uppercase}
+
+  /* Testimonials */
+  .testis{display:grid; grid-template-columns:repeat(3,1fr); gap:20px}
+  @media (max-width:900px){ .testis{grid-template-columns:1fr} }
+  .testi{background:var(--surface); border:1px solid var(--line); border-radius:22px; padding:24px}
+  .testi .stars{letter-spacing:2px; font-size:14px; color:var(--yellow); margin-bottom:10px}
+  .testi p{margin:0 0 16px; font-size:15px; line-height:1.55}
+  .testi .who{display:flex; gap:12px; align-items:center}
+  .testi .av{width:40px;height:40px;border-radius:50%}
+  .testi .who strong{font-size:14px}
+  .testi .who div.small{color:var(--muted); font-size:12px}
+  .testi:nth-child(1) .av{background:linear-gradient(135deg,var(--pink),var(--orange))}
+  .testi:nth-child(2) .av{background:linear-gradient(135deg,var(--mint),var(--pink))}
+  .testi:nth-child(3) .av{background:linear-gradient(135deg,var(--yellow),var(--pink))}
+
+  /* Pricing */
+  .pricing{display:grid; grid-template-columns:repeat(3,1fr); gap:16px; max-width:980px; margin:0 auto}
+  @media (max-width:900px){ .pricing{grid-template-columns:1fr} }
+  .price{background:var(--surface); border:2px solid var(--line); border-radius:22px; padding:28px; position:relative}
+  .price.popular{border-color:var(--pink); box-shadow:var(--shadow)}
+  .price .tag{position:absolute; top:-12px; left:50%; transform:translateX(-50%);
+              background:linear-gradient(90deg,var(--pink),var(--orange)); color:#0B0B1F;
+              font-size:11px; font-weight:900; letter-spacing:.18em; padding:6px 12px; border-radius:999px}
+  .price .name{font-size:13px; letter-spacing:.2em; text-transform:uppercase; color:var(--muted); font-weight:800}
+  .price .num{font-size:52px; font-weight:900; letter-spacing:-.03em; margin:6px 0 0;
+              background:linear-gradient(90deg,var(--pink),var(--yellow));
+              -webkit-background-clip:text; background-clip:text; color:transparent}
+  .price .per{color:var(--muted); font-size:13px}
+  .price .bill{color:var(--muted); font-size:13px; margin:4px 0 18px}
+  .price ul{list-style:none; padding:0; margin:0 0 22px; display:grid; gap:8px; font-size:14px}
+  .price ul li::before{content:"✓"; color:var(--mint); margin-right:8px; font-weight:900}
+  .price .btn{width:100%; justify-content:center}
+
+  /* FAQ */
+  .faq{max-width:820px; margin:0 auto; display:grid; gap:10px}
+  details{background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:16px 20px; transition:background .2s}
+  details[open]{background:var(--surface-hi)}
+  summary{cursor:pointer; list-style:none; font-weight:700; font-size:16px; display:flex; justify-content:space-between; align-items:center; gap:10px}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:"+"; color:var(--pink); font-size:22px; font-weight:900; transition:transform .2s; flex:none}
+  details[open] summary::after{transform:rotate(45deg)}
+  details p{color:var(--muted); font-size:15px; line-height:1.6; margin:10px 0 0}
+
+  /* CTA */
+  .final-cta{background:linear-gradient(160deg, rgba(255,46,126,.2), rgba(255,122,61,.08));
+             border:1px solid rgba(255,46,126,.3); border-radius:28px; padding:56px 32px; text-align:center}
+  .final-cta h2{font-size:44px; margin:0 0 14px; letter-spacing:-.02em; line-height:1.05}
+  .final-cta h2 em{font-style:normal;
+                   background:linear-gradient(90deg,var(--pink),var(--orange) 70%,var(--yellow));
+                   -webkit-background-clip:text; background-clip:text; color:transparent}
+  .final-cta p{color:var(--muted); margin:0 0 24px; font-size:17px}
+
+  /* Footer */
+  footer{padding:40px 0 60px; border-top:1px solid var(--line); margin-top:40px; color:var(--muted); font-size:13px}
+  footer .fgrid{display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:30px; margin-bottom:26px}
+  @media (max-width:720px){ footer .fgrid{grid-template-columns:1fr 1fr} }
+  footer h4{color:#fff; letter-spacing:.18em; text-transform:uppercase; font-size:12px; margin:0 0 12px}
+  footer ul{list-style:none; padding:0; margin:0; display:grid; gap:8px}
+  footer a:hover{color:#fff}
+  footer .bottom{border-top:1px solid var(--line); padding-top:20px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px}
+
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="inner">
+    <div class="brand">IGNITE</div>
+    <div class="nav-links">
+      <a href="#how">How it works</a>
+      <a href="#results">Results</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <div class="spacer"></div>
+    <a class="btn btn-ghost" href="app.html">Sign in</a>
+    <a class="btn btn-primary" href="quiz.html">Take the quiz</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow">Built for women · science-backed</span>
+      <h1 class="headline">Your <em>strongest self</em> starts here.</h1>
+      <p class="lead">A personalized fitness plan shaped around your body, your goals and your actual week. Built by women's-health coaches. Take the 60-second quiz.</p>
+      <div class="cta-row">
+        <a class="btn btn-primary btn-big" href="quiz.html">Take the 60-sec quiz →</a>
+        <span class="tip">No credit card required</span>
+      </div>
+      <div class="ratings">
+        <div class="avatars"><span></span><span></span><span></span><span></span></div>
+        <div><strong>1,000,000+</strong> women training</div>
+        <div class="divider"></div>
+        <div class="stars">★★★★★</div>
+        <div><strong>4.8</strong> / 50k reviews</div>
+      </div>
+    </div>
+    <div>
+      <div class="phone" aria-hidden="true">
+        <div class="screen">
+          <span class="pill">Today · Week 4</span>
+          <h2>Let's <em>ignite</em> today.</h2>
+          <div class="ch-card">
+            <small>Next workout</small>
+            <div class="v">Glute sculpt · 30 min</div>
+            <div class="bar"><i></i></div>
+            <small style="display:block;margin-top:8px">62% of this week complete</small>
+          </div>
+          <div class="ch-row">
+            <div class="ch-card"><small>Streak</small><div class="v">18 days</div></div>
+            <div class="ch-card"><small>This week</small><div class="v">3 / 4</div></div>
+          </div>
+          <div class="ch-card">
+            <small>Your week</small>
+            <div class="week">
+              <div class="on">M</div><div class="on">T</div><div>W</div><div class="on">T</div><div>F</div><div class="on">S</div><div>S</div>
+            </div>
+          </div>
+          <div class="ch-card" style="display:flex;align-items:center;gap:10px">
+            <div style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,var(--pink),var(--orange));display:inline-flex;align-items:center;justify-content:center;font-size:16px">🔥</div>
+            <div><div style="font-weight:800;font-size:13px">Down 4.2 lb in 4 weeks</div><div style="color:var(--muted);font-size:11px">On pace for your 8-week goal</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="logos">
+      <div class="row">
+        <span>★ 4.8 App Store</span>
+        <span>Featured in FORBES</span>
+        <span>Women's Health ★★★★★</span>
+        <span>As seen on BUSTLE</span>
+        <span>SELF magazine</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="block">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Why IGNITE</span>
+      <h2>A plan built around <em>your body</em>, not a generic template.</h2>
+      <p>One-size-fits-all programs weren't made for women's hormones, cycles, or busy lives. IGNITE rebuilds the workout plan every week to meet you where you are.</p>
+    </div>
+    <div class="benefits">
+      <div class="benefit">
+        <div class="ico">🧬</div>
+        <h3>Hormone-aware</h3>
+        <p>Training intensity calibrates to your cycle phase and life stage — from your twenties through perimenopause.</p>
+      </div>
+      <div class="benefit">
+        <div class="ico">⚡</div>
+        <h3>15-minute friendly</h3>
+        <p>Short, high-density workouts that actually fit into a busy week. Any length, any equipment, home or gym.</p>
+      </div>
+      <div class="benefit">
+        <div class="ico">📈</div>
+        <h3>Adapts weekly</h3>
+        <p>Miss a day? Sleep badly? Feeling strong? IGNITE recalibrates your plan automatically — no guilt, just progress.</p>
+      </div>
+      <div class="benefit">
+        <div class="ico">🎯</div>
+        <h3>Focus-zone targeting</h3>
+        <p>Extra attention on the areas you care about — glutes, core, arms, posture — without neglecting full-body strength.</p>
+      </div>
+      <div class="benefit">
+        <div class="ico">🧘‍♀️</div>
+        <h3>Coach-led video</h3>
+        <p>Certified women's fitness coaches walk you through every rep. Form cues, modifications, and pace built in.</p>
+      </div>
+      <div class="benefit">
+        <div class="ico">🫶</div>
+        <h3>Body-positive by design</h3>
+        <p>No shame, no before-after pressure. Progress is framed around how you feel, how you move, and what you can do.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="how">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">How it works</span>
+      <h2>From quiz to <em>first workout</em> in under 10 minutes.</h2>
+      <p>No guesswork. We do the programming so you can just show up and move.</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <h3>Take the quiz</h3>
+        <p>60 seconds. Tell us your goals, body, schedule and focus zones. We'll confirm we can help before you ever pay.</p>
+      </div>
+      <div class="step">
+        <h3>Get your plan</h3>
+        <p>A 12-week roadmap, weekly rhythm, and a realistic timeline to your goal — instantly personalized.</p>
+      </div>
+      <div class="step">
+        <h3>Train &amp; adapt</h3>
+        <p>Tap play on today's workout. Log how it felt. IGNITE adjusts next week — always a challenge, never a grind.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="results">
+  <div class="wrap">
+    <div class="stats">
+      <div class="stat"><div class="big">1M+</div><div class="cap">Women training</div></div>
+      <div class="stat"><div class="big">4.8★</div><div class="cap">50k+ reviews</div></div>
+      <div class="stat"><div class="big">79%</div><div class="cap">See results in 6 weeks</div></div>
+      <div class="stat"><div class="big">15m</div><div class="cap">Shortest effective workout</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="block">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Real women · real stories</span>
+      <h2>Strength looks like <em>this</em>.</h2>
+    </div>
+    <div class="testis">
+      <div class="testi">
+        <div class="stars">★★★★★</div>
+        <p>"Three kids, a full-time job, zero time. IGNITE's 20-minute plan meets me exactly where I am. Down 14 lb and stronger than I was at 25."</p>
+        <div class="who"><div class="av"></div><div><strong>Priya, 38</strong><div class="small">Manager · 14 weeks in</div></div></div>
+      </div>
+      <div class="testi">
+        <div class="stars">★★★★★</div>
+        <p>"I tried three other apps. This is the first one that understood my cycle actually matters. I finally train in rhythm with my body instead of against it."</p>
+        <div class="who"><div class="av"></div><div><strong>Ella, 29</strong><div class="small">Designer · 8 weeks in</div></div></div>
+      </div>
+      <div class="testi">
+        <div class="stars">★★★★★</div>
+        <p>"Postnatal recovery without feeling broken. My pelvic floor, my core, my energy — rebuilt step by step. The confidence alone is worth it."</p>
+        <div class="who"><div class="av"></div><div><strong>Maya, 34</strong><div class="small">New mom · 10 weeks in</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="pricing">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Pricing</span>
+      <h2>Start for the price of <em>one protein shake</em> a week.</h2>
+      <p>All plans include the full program, video workouts, cycle-aware scheduling, and progress tracking. 30-day money-back guarantee.</p>
+    </div>
+    <div class="pricing">
+      <div class="price">
+        <div class="name">1 Month</div>
+        <div class="num">$19.99</div>
+        <div class="per">per month</div>
+        <div class="bill">$19.99 billed monthly</div>
+        <ul>
+          <li>Full 12-week plan</li>
+          <li>Video workouts</li>
+          <li>Cycle-aware scheduling</li>
+          <li>Progress tracking</li>
+        </ul>
+        <a class="btn btn-ghost" href="quiz.html">Start monthly</a>
+      </div>
+      <div class="price popular">
+        <div class="tag">MOST POPULAR</div>
+        <div class="name">3 Months</div>
+        <div class="num">$13.33</div>
+        <div class="per">per month · save 33%</div>
+        <div class="bill">$39.99 billed quarterly</div>
+        <ul>
+          <li>Everything in monthly</li>
+          <li>Personal coach check-ins</li>
+          <li>Meal guide library</li>
+          <li>Cycle journal</li>
+        </ul>
+        <a class="btn btn-primary" href="quiz.html">Start 3-month plan</a>
+      </div>
+      <div class="price">
+        <div class="name">12 Months</div>
+        <div class="num">$8.33</div>
+        <div class="per">per month · save 58%</div>
+        <div class="bill">$99.99 billed yearly</div>
+        <ul>
+          <li>Everything in 3-month</li>
+          <li>Priority new-content access</li>
+          <li>Annual body-composition report</li>
+          <li>IGNITE community circle</li>
+        </ul>
+        <a class="btn btn-ghost" href="quiz.html">Start yearly</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="faq">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Questions</span>
+      <h2>Before you <em>press play</em>.</h2>
+    </div>
+    <div class="faq">
+      <details open>
+        <summary>Is this really personalized, or is it a generic plan?</summary>
+        <p>Every plan is built from your quiz answers — your goals, body composition, focus zones, fitness level, schedule and lifestyle. We adapt weekly based on how you're feeling, what you logged, and where your cycle is.</p>
+      </details>
+      <details>
+        <summary>Do I need any equipment?</summary>
+        <p>No. You can do the entire program with zero equipment at home. If you have dumbbells, bands, or a full gym, we'll use them — the plan adjusts to whatever you have.</p>
+      </details>
+      <details>
+        <summary>What if I'm a total beginner?</summary>
+        <p>Most of our members start as beginners. IGNITE picks your week-1 intensity based on your current fitness level and ramps up gradually. Nothing is "too advanced" — just where you're headed.</p>
+      </details>
+      <details>
+        <summary>Is it safe during pregnancy or postnatal?</summary>
+        <p>We offer dedicated postnatal recovery tracks built with women's-health physios. For pregnancy, we recommend working with your own provider — IGNITE is best started postnatally.</p>
+      </details>
+      <details>
+        <summary>Can I cancel?</summary>
+        <p>Anytime, from your account settings. No calls, no questions. And we stand behind a 30-day money-back guarantee on your first subscription.</p>
+      </details>
+      <details>
+        <summary>Is there a free trial?</summary>
+        <p>The quiz is free. You'll see your personalized plan preview before paying anything. If the plan isn't right for you, you don't need to subscribe.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section class="block">
+  <div class="wrap">
+    <div class="final-cta">
+      <h2>Your <em>strongest self</em> is 60 seconds away.</h2>
+      <p>Take the quiz. See your plan. Start training today.</p>
+      <a class="btn btn-primary btn-big" href="quiz.html">Take the 60-sec quiz →</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="fgrid">
+      <div>
+        <div class="brand" style="margin-bottom:10px">IGNITE</div>
+        <p style="margin:0; color:var(--muted); max-width:280px">Personalized fitness built for how women actually live.</p>
+      </div>
+      <div>
+        <h4>Product</h4>
+        <ul>
+          <li><a href="quiz.html">Take the quiz</a></li>
+          <li><a href="#pricing">Pricing</a></li>
+          <li><a href="app.html">Sign in</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Company</h4>
+        <ul>
+          <li><a href="#">About</a></li>
+          <li><a href="#">Coaches</a></li>
+          <li><a href="#">Careers</a></li>
+          <li><a href="#">Press</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Support</h4>
+        <ul>
+          <li><a href="#faq">FAQ</a></li>
+          <li><a href="#">Contact</a></li>
+          <li><a href="#">Terms</a></li>
+          <li><a href="#">Privacy</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="bottom">
+      <span>© 2026 IGNITE Fitness. All rights reserved.</span>
+      <span>Made with ♡ for women.</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
