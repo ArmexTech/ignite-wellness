@@ -419,6 +419,76 @@ app.post('/api/webhook/stripe',
   });
 
 // =================================================================
+//  WEB PUSH (phase 5)
+// =================================================================
+let webpush = null;
+const VAPID_PUBLIC = process.env.VAPID_PUBLIC_KEY;
+const VAPID_PRIVATE = process.env.VAPID_PRIVATE_KEY;
+const VAPID_SUBJECT = process.env.VAPID_SUBJECT || 'mailto:ops@ignite.fit';
+if (VAPID_PUBLIC && VAPID_PRIVATE) {
+  try {
+    webpush = require('web-push');
+    webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC, VAPID_PRIVATE);
+    console.log('Web Push enabled');
+  } catch (e) { console.log('web-push not installed yet'); }
+}
+
+// Expose public VAPID key so the client can subscribe
+app.get('/api/push/public-key', (req, res) => {
+  res.json({ key: VAPID_PUBLIC || null });
+});
+
+app.post('/api/push/subscribe', requireAuth, async (req, res) => {
+  const sub = req.body?.subscription;
+  if (!sub?.endpoint || !sub?.keys?.p256dh || !sub?.keys?.auth) {
+    return res.status(400).json({ error: 'invalid_subscription' });
+  }
+  try {
+    await pool.query(
+      `INSERT INTO push_subscriptions (user_id, endpoint, p256dh, auth)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (endpoint) DO UPDATE SET user_id = EXCLUDED.user_id, p256dh = EXCLUDED.p256dh, auth = EXCLUDED.auth`,
+      [req.userId, sub.endpoint, sub.keys.p256dh, sub.keys.auth]);
+    res.json({ ok: true });
+  } catch (e) { console.error('push subscribe', e); res.status(500).json({ error: 'server_error' }); }
+});
+
+app.post('/api/push/unsubscribe', requireAuth, async (req, res) => {
+  const endpoint = req.body?.endpoint;
+  if (!endpoint) return res.status(400).json({ error: 'invalid_input' });
+  try {
+    await pool.query(`DELETE FROM push_subscriptions WHERE endpoint = $1 AND user_id = $2`, [endpoint, req.userId]);
+    res.json({ ok: true });
+  } catch (e) { console.error('push unsub', e); res.status(500).json({ error: 'server_error' }); }
+});
+
+// Send a push notification to every subscription for a user.
+// Gone/expired endpoints are cleaned up automatically.
+async function sendPushToUser(userId, payload){
+  if (!webpush) return { skipped: 'no_vapid' };
+  const { rows } = await pool.query(
+    `SELECT endpoint, p256dh, auth FROM push_subscriptions WHERE user_id = $1`, [userId]);
+  let sent = 0, gone = 0;
+  for (const r of rows) {
+    try {
+      await webpush.sendNotification({
+        endpoint: r.endpoint,
+        keys: { p256dh: r.p256dh, auth: r.auth },
+      }, JSON.stringify(payload), { TTL: 60 * 60 * 24 });
+      sent++;
+    } catch (err) {
+      if (err.statusCode === 404 || err.statusCode === 410) {
+        await pool.query(`DELETE FROM push_subscriptions WHERE endpoint = $1`, [r.endpoint]).catch(()=>{});
+        gone++;
+      } else {
+        console.error('push send error', err.statusCode, err.body);
+      }
+    }
+  }
+  return { sent, gone };
+}
+
+// =================================================================
 //  EMAIL (phase 4 — stubbed until Resend key is set)
 // =================================================================
 async function sendEmail(to, kind, data){
@@ -490,10 +560,123 @@ app.use((req, res) => {
   res.status(404).sendFile(path.join(__dirname, '404.html'));
 });
 
+// =================================================================
+//  SCHEDULED REMINDERS (phase 5)
+//  Runs in-process with node-cron. If you scale to multiple replicas,
+//  add a Postgres advisory lock around each job or run them from a
+//  dedicated Railway Cron service instead.
+// =================================================================
+const cron = (() => { try { return require('node-cron'); } catch { return null; } })();
+
+async function jobWorkoutReminder(){
+  // Users who haven't trained today, with workout_reminder notifications on
+  const { rows } = await pool.query(`
+    SELECT u.id, u.email,
+           COALESCE(s.data->'notifications'->>'workout','true')::bool AS wants_push,
+           COALESCE(s.data->'notifications'->>'email','true')::bool AS wants_email
+      FROM users u
+      JOIN subscriptions sub ON sub.user_id = u.id
+      LEFT JOIN user_settings s ON s.user_id = u.id
+     WHERE sub.status IN ('active','trialing')
+       AND NOT EXISTS (
+         SELECT 1 FROM workout_logs wl
+          WHERE wl.user_id = u.id
+            AND wl.completed_at > NOW() - INTERVAL '20 hours'
+       )
+  `);
+  let pushed = 0, emailed = 0;
+  for (const u of rows) {
+    if (u.wants_push) { try { const r = await sendPushToUser(u.id, {
+      title: '🔥 Time to train',
+      body: "Today's workout is ready. 15 minutes, that's all it takes.",
+      url: '/app.html',
+      tag: 'workout-reminder',
+    }); if (r.sent) pushed++; } catch(e){} }
+    if (u.wants_email) { try { await sendEmail(u.email, 'workout_reminder', {}); emailed++; } catch(e){} }
+  }
+  console.log(`[cron] workout reminder: push=${pushed} email=${emailed} candidates=${rows.length}`);
+}
+
+async function jobStreakNudge(){
+  // Users with a 2+ day streak who haven't trained today; nudge them in the evening
+  const { rows } = await pool.query(`
+    WITH streaks AS (
+      SELECT wl.user_id,
+             COUNT(DISTINCT DATE(wl.completed_at)) FILTER (WHERE wl.completed_at > NOW() - INTERVAL '7 days') AS days_this_week
+        FROM workout_logs wl
+       GROUP BY wl.user_id
+    )
+    SELECT u.id, u.email, st.days_this_week
+      FROM users u
+      JOIN subscriptions sub ON sub.user_id = u.id
+      JOIN streaks st ON st.user_id = u.id
+      LEFT JOIN user_settings s ON s.user_id = u.id
+     WHERE sub.status IN ('active','trialing')
+       AND st.days_this_week >= 2
+       AND NOT EXISTS (
+         SELECT 1 FROM workout_logs wl
+          WHERE wl.user_id = u.id AND wl.completed_at::date = CURRENT_DATE
+       )
+       AND COALESCE(s.data->'notifications'->>'streak','true')::bool = true
+  `);
+  for (const u of rows) {
+    try { await sendPushToUser(u.id, {
+      title: `Don't lose your ${u.days_this_week}-day streak 🔥`,
+      body: 'One workout left today to keep the chain alive.',
+      url: '/workout.html',
+      tag: 'streak-nudge',
+    }); } catch(e){}
+    try { await sendEmail(u.email, 'streak_nudge', { days: u.days_this_week }); } catch(e){}
+  }
+  console.log(`[cron] streak nudge: ${rows.length} candidates`);
+}
+
+async function jobWeeklyRecap(){
+  const { rows } = await pool.query(`
+    SELECT u.id, u.email,
+           (SELECT COUNT(*) FROM workout_logs wl WHERE wl.user_id = u.id AND wl.completed_at > NOW() - INTERVAL '7 days') AS completed,
+           (SELECT COALESCE(SUM(duration_seconds),0)/60 FROM workout_logs wl WHERE wl.user_id = u.id AND wl.completed_at > NOW() - INTERVAL '7 days') AS minutes
+      FROM users u
+      JOIN subscriptions sub ON sub.user_id = u.id
+      LEFT JOIN user_settings s ON s.user_id = u.id
+     WHERE sub.status IN ('active','trialing')
+       AND COALESCE(s.data->'notifications'->>'weekly','true')::bool = true
+  `);
+  for (const u of rows) {
+    try { await sendEmail(u.email, 'weekly_recap', {
+      completed: u.completed, minutes: u.minutes, streak: u.completed,
+    }); } catch(e){}
+  }
+  console.log(`[cron] weekly recap: ${rows.length} sent`);
+}
+
+// Expose for manual trigger / testing (admin token)
+app.post('/api/admin/run-job', async (req, res) => {
+  if (req.headers['x-admin-token'] !== process.env.ADMIN_TOKEN || !process.env.ADMIN_TOKEN) {
+    return res.status(403).json({ error: 'forbidden' });
+  }
+  const kind = req.body?.kind;
+  const map = { workout_reminder: jobWorkoutReminder, streak_nudge: jobStreakNudge, weekly_recap: jobWeeklyRecap };
+  if (!map[kind]) return res.status(400).json({ error: 'unknown_kind' });
+  try { await map[kind](); res.json({ ok: true }); } catch (e) { console.error(e); res.status(500).json({ error: 'server_error' }); }
+});
+
+function scheduleJobs(){
+  if (!cron) { console.log('node-cron not installed; skipping schedule'); return; }
+  // 10 AM UTC every day → workout reminder for those who haven't trained
+  cron.schedule('0 10 * * *', () => jobWorkoutReminder().catch(e=>console.error(e)));
+  // 7 PM UTC every day → streak nudge
+  cron.schedule('0 19 * * *', () => jobStreakNudge().catch(e=>console.error(e)));
+  // Monday 9 AM UTC → weekly recap
+  cron.schedule('0 9 * * 1', () => jobWeeklyRecap().catch(e=>console.error(e)));
+  console.log('Scheduled jobs registered (10:00 UTC workout, 19:00 UTC streak, Mon 09:00 UTC recap).');
+}
+
 // ---------- Boot ----------
 (async () => {
   try {
     await runMigrations();
+    scheduleJobs();
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`IGNITE server listening on :${PORT}`);
       console.log(`APP_URL=${APP_URL}  IS_PROD=${IS_PROD}`);

@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="description" content="Your personalized IGNITE plan — today's workout, weekly rhythm, and progress." />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='72' font-size='80' text-anchor='middle'%3E🔥%3C/text%3E%3C/svg%3E" />
+<link rel="manifest" href="/manifest.json" />
+<meta name="theme-color" content="#0B0B1F" />
 <title>IGNITE — Your plan</title>
 <style>
   :root{
@@ -807,7 +809,7 @@
       },
 
       notifications: () => {
-        const n = s.notifications || { workout:true, streak:true, weekly:true, tips:false, push:true, email:true };
+        const n = s.notifications || { workout:true, streak:true, weekly:true, tips:false, email:true };
         const row = (k, t, d) => `<div class="toggle-row">
             <div><div class="nm">${t}</div><div class="dd">${d}</div></div>
             <div class="tgl ${n[k]?'on':''}" data-tgl="n:${k}"></div>
@@ -820,14 +822,44 @@
               + row('weekly','Weekly progress','Monday morning recap of last week.')
               + row('tips','Tips &amp; tricks','Occasional coaching tips. Off by default.')
               + `<div class="set-field" style="margin-top:18px"><label>Delivery channels</label></div>`
-              + row('push','Push notifications','Requires enabling in your phone.')
+              + `<div class="toggle-row" id="pushRow">
+                  <div><div class="nm">Push notifications</div><div class="dd" id="pushStatus">Checking…</div></div>
+                  <button id="pushBtn" class="link-btn" style="width:auto;padding:8px 12px;margin:0">—</button>
+                </div>`
               + row('email','Email','Receipts and account emails are always on.'),
           save: () => {
-            const next = {};
+            const next = { push: (document.getElementById('pushStatus')?.dataset.status === 'on') };
             setBody.querySelectorAll('[data-tgl^="n:"]').forEach(el=>{
               next[el.dataset.tgl.slice(2)] = el.classList.contains('on');
             });
             saveSettings({ notifications: next });
+          },
+          onMount: async () => {
+            const status = await (window.IGNITE_pushStatus?.() ?? Promise.resolve('off'));
+            const statusEl = document.getElementById('pushStatus');
+            const btn = document.getElementById('pushBtn');
+            if (!statusEl || !btn) return;
+            function render(st){
+              statusEl.dataset.status = st;
+              statusEl.textContent = ({
+                on: 'Enabled — you\u2019ll get push reminders.',
+                off: 'Not enabled on this device.',
+                blocked: 'Blocked in your browser. Enable in site settings.',
+                unsupported: 'Not supported on this browser.'
+              })[st] || 'Unknown';
+              btn.textContent = st === 'on' ? 'Turn off' : (st === 'off' ? 'Enable' : '—');
+              btn.disabled = st !== 'on' && st !== 'off';
+            }
+            render(status);
+            btn.addEventListener('click', async () => {
+              btn.disabled = true; btn.textContent = 'Working…';
+              const current = statusEl.dataset.status;
+              const ok = current === 'on' ? await window.IGNITE_disablePush() : await window.IGNITE_enablePush();
+              const newStatus = await window.IGNITE_pushStatus();
+              render(newStatus);
+              if (!ok && current !== 'on') toast('Couldn\u2019t enable push. Check browser permission.');
+              else toast(current === 'on' ? '✓ Push disabled' : '✓ Push enabled');
+            });
           }
         };
       },
@@ -887,6 +919,7 @@
     };
 
     setModal.classList.add('show');
+    if (spec.onMount) { try { spec.onMount(); } catch(e) { console.error('onMount', e); } }
   }
 
   // Wire profile buttons

@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='72' font-size='80' text-anchor='middle'%3E🔥%3C/text%3E%3C/svg%3E" />
+<title>IGNITE — offline</title>
+<style>
+  :root{--bg:#0B0B1F;--muted:#A6A6C6;--pink:#FF2E7E;--orange:#FF7A3D;--yellow:#FFD23F}
+  *{box-sizing:border-box}html,body{margin:0;padding:0;background:var(--bg);color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif;min-height:100vh}
+  .page{min-height:100dvh;display:grid;place-items:center;padding:40px 20px;background:radial-gradient(800px 400px at 50% -10%, rgba(255,46,126,.2), transparent 60%),var(--bg);text-align:center}
+  .emoji{font-size:80px;margin-bottom:14px}
+  h1{font-size:34px;letter-spacing:-.02em;margin:0 0 10px;font-weight:900}
+  h1 em{font-style:normal;background:linear-gradient(90deg,var(--pink),var(--yellow));-webkit-background-clip:text;background-clip:text;color:transparent}
+  p{color:var(--muted);max-width:420px;margin:0 auto 24px}
+  button{padding:14px 24px;border-radius:14px;border:0;font-weight:900;font-size:15px;background:linear-gradient(135deg,var(--pink),var(--orange) 70%,var(--yellow));color:#0B0B1F;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="page">
+  <div>
+    <div class="emoji">📶</div>
+    <h1>You're <em>offline</em>.</h1>
+    <p>Check your connection and we'll have you back training in a sec.</p>
+    <button onclick="location.reload()">Try again</button>
+  </div>
+</div>
+</body>
+</html>

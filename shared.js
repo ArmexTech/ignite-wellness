@@ -67,6 +67,72 @@
     try { window.IGNITE_loadAnalytics(); } catch(e){}
   }
 
+  // ---------- Service worker ----------
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(err => console.warn('SW register failed:', err));
+    });
+  }
+
+  // ---------- Web Push helpers (exposed globally) ----------
+  function b64ToBytes(s){
+    const pad = '='.repeat((4 - s.length % 4) % 4);
+    const b64 = (s + pad).replace(/-/g, '+').replace(/_/g, '/');
+    const raw = atob(b64);
+    return Uint8Array.from(raw, c => c.charCodeAt(0));
+  }
+
+  window.IGNITE_enablePush = async function(){
+    try {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        alert('Push notifications aren\u2019t supported in this browser.'); return false;
+      }
+      const perm = await Notification.requestPermission();
+      if (perm !== 'granted') return false;
+
+      const reg = await navigator.serviceWorker.ready;
+      const keyResp = await fetch('/api/push/public-key').then(r=>r.json());
+      if (!keyResp.key) { alert('Push not configured on server yet.'); return false; }
+
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: b64ToBytes(keyResp.key),
+      });
+      const r = await fetch('/api/push/subscribe', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ subscription: sub }),
+      });
+      return r.ok;
+    } catch (e) { console.error('enablePush', e); return false; }
+  };
+  window.IGNITE_disablePush = async function(){
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      if (sub) {
+        await fetch('/api/push/unsubscribe', {
+          method: 'POST',
+          credentials: 'include',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ endpoint: sub.endpoint }),
+        });
+        await sub.unsubscribe();
+      }
+      return true;
+    } catch (e) { console.error('disablePush', e); return false; }
+  };
+  window.IGNITE_pushStatus = async function(){
+    try {
+      if (!('serviceWorker' in navigator)) return 'unsupported';
+      if (Notification.permission === 'denied') return 'blocked';
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      return sub ? 'on' : 'off';
+    } catch (e) { return 'off'; }
+  };
+
   // ---------- Boot ----------
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', mountBanner);

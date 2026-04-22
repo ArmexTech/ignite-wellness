@@ -1,0 +1,47 @@
+{
+  "name": "IGNITE — Fitness for women",
+  "short_name": "IGNITE",
+  "description": "Your personalized fitness plan — workouts that fit your body, your goals, and your schedule.",
+  "start_url": "/app.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#0B0B1F",
+  "background_color": "#0B0B1F",
+  "lang": "en",
+  "categories": ["health", "fitness", "lifestyle"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%230B0B1F'/%3E%3Ctext x='256' y='360' font-size='340' text-anchor='middle' font-family='system-ui'%3E🔥%3C/text%3E%3C/svg%3E",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Today's workout",
+      "short_name": "Workout",
+      "description": "Jump straight into today's session",
+      "url": "/workout.html"
+    },
+    {
+      "name": "My plan",
+      "short_name": "Plan",
+      "description": "12-week roadmap",
+      "url": "/app.html"
+    }
+  ]
+}
