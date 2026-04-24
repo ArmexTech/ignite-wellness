@@ -553,8 +553,8 @@ app.get('/api/waitlist/count', async (req, res) => {
 app.post('/api/waitlist/join', async (req, res) => {
   const schema = z.object({
     email: z.string().email().max(200),
-    referral_code: z.string().regex(/^[A-Z0-9]{6,16}$/).optional(),
-    source: z.string().max(64).optional(),
+    referral_code: z.string().regex(/^[A-Z0-9]{6,16}$/).nullable().optional(),
+    source: z.string().max(64).nullable().optional(),
   });
   const parsed = schema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: 'invalid_input' });
@@ -636,6 +636,15 @@ app.get('/api/waitlist/status', async (req, res) => {
       referrals_count: r.referrals_count, created_at: r.created_at, total: c[0].total,
     });
   } catch (e) { console.error('waitlist/status', e); res.status(500).json({ error: 'server_error' }); }
+});
+
+app.delete('/api/admin/waitlist', requireAdmin, async (req, res) => {
+  const email = sanitizeEmail(req.body?.email);
+  if (!email) return res.status(400).json({ error: 'email_required' });
+  try {
+    const r = await pool.query(`DELETE FROM waitlist WHERE LOWER(email) = $1 RETURNING position`, [email]);
+    res.json({ ok: true, deleted: r.rowCount });
+  } catch (e) { console.error(e); res.status(500).json({ error: 'server_error' }); }
 });
 
 app.get('/api/admin/waitlist', requireAdmin, async (req, res) => {

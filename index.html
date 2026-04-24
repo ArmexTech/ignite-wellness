@@ -595,12 +595,22 @@
     const oldLabel = submitBtn.textContent;
     submitBtn.textContent = 'Reserving…';
 
-    const source = params.get('utm_source') || document.referrer ? new URL(document.referrer || location.href).hostname : 'direct';
+    // Build payload, omitting null/empty optional fields so validation passes cleanly
+    const utmSource = params.get('utm_source');
+    let source = utmSource;
+    if (!source && document.referrer) {
+      try { source = new URL(document.referrer).hostname; } catch(e){}
+    }
+    source = source || 'direct';
+    const payload = { email, source };
+    const ref = getRef();
+    if (ref) payload.referral_code = ref;
+
     try {
       const resp = await fetch('/api/waitlist/join', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, referral_code: getRef(), source }),
+        body: JSON.stringify(payload),
       });
       const data = await resp.json();
       if (!resp.ok) throw new Error(data.error || 'failed');
