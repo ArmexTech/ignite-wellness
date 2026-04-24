@@ -647,6 +647,18 @@ app.delete('/api/admin/waitlist', requireAdmin, async (req, res) => {
   } catch (e) { console.error(e); res.status(500).json({ error: 'server_error' }); }
 });
 
+app.post('/api/admin/waitlist/reset-all', requireAdmin, async (req, res) => {
+  // DESTRUCTIVE: wipes the waitlist and restarts the position sequence at 1.
+  // Requires body.confirm === 'RESET_WAITLIST' to avoid accidents.
+  if (req.body?.confirm !== 'RESET_WAITLIST') {
+    return res.status(400).json({ error: 'confirm_required', hint: 'POST {"confirm":"RESET_WAITLIST"}' });
+  }
+  try {
+    await pool.query(`TRUNCATE TABLE waitlist RESTART IDENTITY`);
+    res.json({ ok: true });
+  } catch (e) { console.error(e); res.status(500).json({ error: 'server_error' }); }
+});
+
 app.get('/api/admin/waitlist', requireAdmin, async (req, res) => {
   try {
     const { rows: stats } = await pool.query(`
