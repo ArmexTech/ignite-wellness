@@ -85,6 +85,17 @@
   .avatars span:nth-child(3){background:linear-gradient(135deg,var(--yellow),var(--pink))}
   .avatars span:nth-child(4){background:linear-gradient(135deg,var(--orange),var(--mint))}
 
+  /* Waitlist form */
+  .waitlist-form{display:flex; gap:10px; margin:0 0 10px; max-width:520px; flex-wrap:wrap}
+  .waitlist-form input{flex:1; min-width:240px; padding:16px 18px; border-radius:14px; border:2px solid var(--line);
+                       background:var(--surface); color:#fff; font:inherit; font-size:16px; outline:none; transition:border-color .15s}
+  .waitlist-form input:focus{border-color:var(--pink)}
+  .waitlist-form button{flex:none; white-space:nowrap}
+  .waitlist-form button[disabled]{opacity:.6; cursor:not-allowed}
+  .waitlist-meta{color:var(--muted); font-size:13px; margin-bottom:20px}
+  #scarcityBanner{background:linear-gradient(90deg, rgba(255,46,126,.15), rgba(255,210,63,.12));
+                  color:var(--yellow); border:1px solid rgba(255,210,63,.3); padding:7px 14px}
+
   /* Phone mockup */
   .phone{position:relative; margin-left:auto; width:320px; height:640px; border-radius:44px;
          background:var(--bg-2); border:10px solid #1a1a35;
@@ -233,26 +244,28 @@
     </div>
     <div class="spacer"></div>
     <a class="btn btn-ghost" href="login.html">Sign in</a>
-    <a class="btn btn-primary" href="quiz.html">Take the quiz</a>
+    <a class="btn btn-primary" href="#waitlist">Join waitlist</a>
   </div>
 </nav>
 
 <header class="hero">
   <div class="wrap hero-grid">
     <div>
-      <span class="eyebrow">Built for women · science-backed</span>
+      <span class="eyebrow" id="scarcityBanner">🔥 First 500 get 50% off their first year</span>
       <h1 class="headline">Your <em>strongest self</em> starts here.</h1>
-      <p class="lead">A personalized fitness plan shaped around your body, your goals and your actual week. Built by women's-health coaches. Take the 60-second quiz.</p>
-      <div class="cta-row">
-        <a class="btn btn-primary btn-big" href="quiz.html">Take the 60-sec quiz →</a>
-        <span class="tip">No credit card required</span>
+      <p class="lead">A personalized fitness plan shaped around your body, your goals and your actual week. Built by women's-health coaches. <strong>Join the waitlist</strong> — we launch soon.</p>
+
+      <div id="waitlist" style="scroll-margin-top:80px">
+        <form id="waitlistForm" class="waitlist-form" novalidate>
+          <input id="waitlistEmail" type="email" required placeholder="you@email.com" autocomplete="email" />
+          <button type="submit" class="btn btn-primary btn-big">Reserve my spot →</button>
+        </form>
       </div>
+      <div class="waitlist-meta" id="waitlistMeta">No credit card · 50% off lifetime for early joiners</div>
+
       <div class="ratings">
         <div class="avatars"><span></span><span></span><span></span><span></span></div>
-        <div><strong>1,000,000+</strong> women training</div>
-        <div class="divider"></div>
-        <div class="stars">★★★★★</div>
-        <div><strong>4.8</strong> / 50k reviews</div>
+        <div><strong id="liveCount">Loading…</strong> <span id="liveCountLabel">women on the waitlist</span></div>
       </div>
     </div>
     <div>
@@ -420,7 +433,7 @@
           <li>Cycle-aware scheduling</li>
           <li>Progress tracking</li>
         </ul>
-        <a class="btn btn-ghost" href="quiz.html">Start monthly</a>
+        <a class="btn btn-ghost" href="#waitlist">Reserve my plan</a>
       </div>
       <div class="price popular">
         <div class="tag">MOST POPULAR</div>
@@ -434,7 +447,7 @@
           <li>Meal guide library</li>
           <li>Cycle journal</li>
         </ul>
-        <a class="btn btn-primary" href="quiz.html">Start 3-month plan</a>
+        <a class="btn btn-primary" href="#waitlist">Reserve my plan</a>
       </div>
       <div class="price">
         <div class="name">12 Months</div>
@@ -447,7 +460,7 @@
           <li>Annual body-composition report</li>
           <li>IGNITE community circle</li>
         </ul>
-        <a class="btn btn-ghost" href="quiz.html">Start yearly</a>
+        <a class="btn btn-ghost" href="#waitlist">Reserve my plan</a>
       </div>
     </div>
   </div>
@@ -492,8 +505,8 @@
   <div class="wrap">
     <div class="final-cta">
       <h2>Your <em>strongest self</em> is 60 seconds away.</h2>
-      <p>Take the quiz. See your plan. Start training today.</p>
-      <a class="btn btn-primary btn-big" href="quiz.html">Take the 60-sec quiz →</a>
+      <p>Join the waitlist. First 500 get 50% off their first year.</p>
+      <a class="btn btn-primary btn-big" href="#waitlist">Reserve my spot →</a>
     </div>
   </div>
 </section>
@@ -508,7 +521,7 @@
       <div>
         <h4>Product</h4>
         <ul>
-          <li><a href="quiz.html">Take the quiz</a></li>
+          <li><a href="#waitlist">Join the waitlist</a></li>
           <li><a href="#pricing">Pricing</a></li>
           <li><a href="login.html">Sign in</a></li>
         </ul>
@@ -539,5 +552,67 @@
 </footer>
 
 <script defer src="shared.js"></script>
+<script>
+(() => {
+  // ---- Referral code capture ----
+  const params = new URLSearchParams(location.search);
+  const r = params.get('r');
+  if (r && /^[A-Za-z0-9]{6,16}$/.test(r)) {
+    try { localStorage.setItem('ignite_ref', r.toUpperCase()); } catch(e){}
+  }
+  const getRef = () => { try { return localStorage.getItem('ignite_ref'); } catch(e){ return null; } };
+
+  // ---- Live count ----
+  const countEl = document.getElementById('liveCount');
+  const labelEl = document.getElementById('liveCountLabel');
+  const banner = document.getElementById('scarcityBanner');
+  fetch('/api/waitlist/count').then(r => r.json()).then(d => {
+    if (countEl) countEl.textContent = d.total.toLocaleString();
+    if (labelEl) labelEl.textContent = 'women on the waitlist';
+    if (banner && d.remainingFirst500 > 0) {
+      banner.innerHTML = `🔥 First 500 get 50% off their first year · <strong>${d.remainingFirst500} spots left</strong>`;
+    } else if (banner) {
+      banner.innerHTML = '🔥 Early access — join the IGNITE waitlist';
+    }
+  }).catch(()=>{ if (countEl) { countEl.textContent = '—'; labelEl.textContent = 'on the waitlist'; } });
+
+  // ---- Submit handler ----
+  const form = document.getElementById('waitlistForm');
+  const meta = document.getElementById('waitlistMeta');
+  const emailInput = document.getElementById('waitlistEmail');
+  const submitBtn = form?.querySelector('button[type="submit"]');
+  if (!form) return;
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const email = emailInput.value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      meta.textContent = 'Please enter a valid email address.';
+      meta.style.color = '#FF5E7E';
+      return;
+    }
+    submitBtn.disabled = true;
+    const oldLabel = submitBtn.textContent;
+    submitBtn.textContent = 'Reserving…';
+
+    const source = params.get('utm_source') || document.referrer ? new URL(document.referrer || location.href).hostname : 'direct';
+    try {
+      const resp = await fetch('/api/waitlist/join', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, referral_code: getRef(), source }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || 'failed');
+      location.href = `waitlist.html?code=${encodeURIComponent(data.referral_code)}`;
+    } catch (err) {
+      meta.textContent = 'Something went wrong — try again.';
+      meta.style.color = '#FF5E7E';
+      submitBtn.disabled = false;
+      submitBtn.textContent = oldLabel;
+    }
+  });
+})();
+</script>
 </body>
 </html>

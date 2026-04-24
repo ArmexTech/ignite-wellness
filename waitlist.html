@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="description" content="You're in — IGNITE early-access waitlist." />
+<meta name="robots" content="noindex" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='72' font-size='80' text-anchor='middle'%3E🔥%3C/text%3E%3C/svg%3E" />
+<link rel="manifest" href="/manifest.json" />
+<meta name="theme-color" content="#0B0B1F" />
+<title>You're in — IGNITE</title>
+<style>
+  :root{--bg:#0B0B1F;--bg-2:#14142E;--surface:#1A1A3A;--surface-hi:#232348;--line:#2B2B52;--text:#FFF;--muted:#A6A6C6;--pink:#FF2E7E;--orange:#FF7A3D;--yellow:#FFD23F;--mint:#00F0B5;--shadow:0 20px 60px rgba(255,46,126,.25);}
+  *{box-sizing:border-box}html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;overflow-x:hidden}
+  a{color:inherit;text-decoration:none}
+  button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+  .page{min-height:100dvh;display:grid;place-items:center;padding:40px 20px;background:radial-gradient(1000px 500px at 50% 0%, rgba(255,46,126,.25), transparent 70%),radial-gradient(600px 400px at 50% 100%, rgba(0,240,181,.12), transparent 70%),var(--bg);position:relative}
+  .confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+  .confetti i{position:absolute;width:10px;height:14px;border-radius:2px;animation:fall 5s linear infinite}
+  @keyframes fall{0%{transform:translateY(-20vh) rotate(0deg);opacity:1}100%{transform:translateY(120vh) rotate(720deg);opacity:.4}}
+  .card{width:100%;max-width:560px;background:var(--surface);border:1px solid var(--line);border-radius:28px;padding:36px 32px;text-align:center;position:relative;z-index:1;box-shadow:0 40px 100px rgba(255,46,126,.2)}
+  .brand{font-weight:900;letter-spacing:.28em;font-size:16px;background:linear-gradient(90deg,var(--pink),var(--orange) 60%,var(--yellow));-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:8px;display:inline-block}
+  .eyebrow{display:inline-block;font-size:11px;letter-spacing:.22em;font-weight:800;text-transform:uppercase;color:var(--mint);background:rgba(0,240,181,.12);padding:5px 10px;border-radius:999px;margin-bottom:14px}
+  h1{font-size:38px;letter-spacing:-.02em;margin:0 0 10px;line-height:1.1;font-weight:900}
+  h1 em{font-style:normal;background:linear-gradient(90deg,var(--pink),var(--orange) 70%,var(--yellow));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{color:var(--muted);font-size:15px;margin:0 0 24px}
+  .position-card{background:linear-gradient(160deg, rgba(255,46,126,.2), rgba(255,122,61,.08));border:1px solid rgba(255,46,126,.3);border-radius:20px;padding:24px;margin:18px 0}
+  .position-card .num{font-size:72px;font-weight:900;letter-spacing:-.04em;line-height:1;background:linear-gradient(90deg,var(--pink),var(--yellow));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .position-card .lab{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:800;margin-top:4px}
+  .row{display:flex;justify-content:space-around;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08)}
+  .stat{text-align:center}
+  .stat .v{font-size:22px;font-weight:900;letter-spacing:-.02em}
+  .stat .k{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:800;margin-top:2px}
+  .share-block{margin:20px 0 14px;text-align:left}
+  .share-block .title{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:800;margin-bottom:10px}
+  .link-box{display:flex;align-items:center;gap:8px;background:var(--bg-2);border:2px solid var(--line);border-radius:14px;padding:10px 12px}
+  .link-box input{flex:1;background:transparent;border:0;color:#fff;font:inherit;font-size:13px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;outline:none}
+  .link-box button{padding:8px 14px;border-radius:10px;background:linear-gradient(135deg,var(--pink),var(--orange));color:#0B0B1F;font-weight:800;font-size:12px;letter-spacing:.04em}
+  .share-btns{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-top:10px}
+  .share-btns a{padding:12px;background:var(--bg-2);border:1px solid var(--line);border-radius:12px;text-align:center;font-size:13px;font-weight:700;transition:background .15s}
+  .share-btns a:hover{background:var(--surface-hi)}
+  .tip{background:rgba(0,240,181,.08);border:1px solid rgba(0,240,181,.22);border-radius:14px;padding:12px 16px;font-size:13px;color:#D4D4E6;line-height:1.5;margin-top:10px;text-align:left}
+  .tip strong{color:var(--mint)}
+  .foot{margin-top:18px;color:var(--muted);font-size:12px}
+  .foot a{color:var(--muted);text-decoration:underline}
+  @media(max-width:500px){h1{font-size:28px}.card{padding:28px 22px}.position-card .num{font-size:56px}}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="confetti" aria-hidden="true" id="confetti"></div>
+  <div class="card">
+    <div class="brand">IGNITE</div>
+    <span class="eyebrow">You're in</span>
+    <h1>Reserved. 🔥</h1>
+    <p class="sub" id="sub">Here's where you sit on the early-access list.</p>
+
+    <div class="position-card">
+      <div class="num" id="position">—</div>
+      <div class="lab">Your spot</div>
+      <div class="row">
+        <div class="stat"><div class="v" id="total">—</div><div class="k">Total joined</div></div>
+        <div class="stat"><div class="v" id="refs">—</div><div class="k">Your referrals</div></div>
+      </div>
+    </div>
+
+    <div class="tip">
+      <strong>Move up faster.</strong> Every friend who joins from your link bumps you up the list — and if you're in the top 500, you lock in <strong>50% off your first year</strong>.
+    </div>
+
+    <div class="share-block">
+      <div class="title">Your referral link</div>
+      <div class="link-box">
+        <input id="refLink" readonly />
+        <button id="copyBtn">Copy</button>
+      </div>
+      <div class="share-btns" id="shareBtns"></div>
+    </div>
+
+    <div class="foot">
+      We'll email you the moment we launch. Questions? <a href="contact.html">Contact us</a>.
+    </div>
+  </div>
+</div>
+
+<script>
+(async () => {
+  const code = new URLSearchParams(location.search).get('code');
+  if (!code) { location.href = '/'; return; }
+
+  // Confetti
+  const colors = ['#FF2E7E','#FF7A3D','#FFD23F','#00F0B5','#9d6cff'];
+  const wrap = document.getElementById('confetti');
+  for (let i = 0; i < 50; i++) {
+    const c = document.createElement('i');
+    c.style.left = Math.random()*100+'%';
+    c.style.background = colors[i%colors.length];
+    c.style.animationDelay = (Math.random()*5)+'s';
+    c.style.animationDuration = (3 + Math.random()*4)+'s';
+    c.style.opacity = (.55 + Math.random()*.35);
+    wrap.appendChild(c);
+  }
+
+  let data;
+  try {
+    const r = await fetch('/api/waitlist/status?code=' + encodeURIComponent(code));
+    data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'fetch_failed');
+  } catch(e) {
+    document.getElementById('sub').textContent = 'We couldn\u2019t find your spot. Make sure the link is correct.';
+    return;
+  }
+
+  document.getElementById('position').textContent = '#' + data.position.toLocaleString();
+  document.getElementById('total').textContent = data.total.toLocaleString();
+  document.getElementById('refs').textContent = data.referrals_count.toLocaleString();
+
+  const first500 = data.position <= 500;
+  document.getElementById('sub').innerHTML = first500
+    ? `You're locked in for <strong>50% off your first year</strong> when we launch.`
+    : `Move up to the top 500 to unlock <strong>50% off your first year</strong>.`;
+
+  // Referral link + share
+  const referralUrl = `${location.origin}/?r=${data.referral_code}`;
+  document.getElementById('refLink').value = referralUrl;
+
+  const copyBtn = document.getElementById('copyBtn');
+  copyBtn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(referralUrl);
+      const old = copyBtn.textContent;
+      copyBtn.textContent = '✓ Copied';
+      setTimeout(() => copyBtn.textContent = old, 1500);
+    } catch(e) {
+      document.getElementById('refLink').select();
+      document.execCommand('copy');
+    }
+  });
+
+  const shareMsg = encodeURIComponent(`I just joined the IGNITE early-access list — personalized fitness plans built for women. First 500 get 50% off the first year. Join me:`);
+  const link = encodeURIComponent(referralUrl);
+  const buttons = [
+    { label: '💬 WhatsApp', url: `https://wa.me/?text=${shareMsg}%20${link}` },
+    { label: '𝕏 Post',     url: `https://twitter.com/intent/tweet?text=${shareMsg}&url=${link}` },
+    { label: '📧 Email',    url: `mailto:?subject=${encodeURIComponent('Try IGNITE with me')}&body=${shareMsg}%20${link}` },
+    { label: '💬 SMS',      url: `sms:?body=${shareMsg}%20${link}` },
+  ];
+  document.getElementById('shareBtns').innerHTML = buttons.map(b => `<a href="${b.url}" target="_blank" rel="noopener">${b.label}</a>`).join('');
+})();
+</script>
+<script defer src="shared.js"></script>
+</body>
+</html>

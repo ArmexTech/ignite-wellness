@@ -144,3 +144,21 @@ CREATE TABLE IF NOT EXISTS workout_exercises (
   PRIMARY KEY (workout_id, position)
 );
 CREATE INDEX IF NOT EXISTS workout_exercises_workout_idx ON workout_exercises (workout_id, position);
+
+-- =================================================================
+-- Pre-launch waitlist
+-- =================================================================
+CREATE TABLE IF NOT EXISTS waitlist (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email TEXT UNIQUE NOT NULL,
+  position BIGSERIAL,
+  referral_code TEXT UNIQUE NOT NULL,
+  referred_by_code TEXT,
+  referrals_count INT NOT NULL DEFAULT 0,
+  source TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  notified_at TIMESTAMPTZ
+);
+CREATE INDEX IF NOT EXISTS waitlist_referred_by_idx ON waitlist (referred_by_code);
+CREATE INDEX IF NOT EXISTS waitlist_created_idx  ON waitlist (created_at DESC);
+CREATE INDEX IF NOT EXISTS waitlist_position_idx ON waitlist (position);

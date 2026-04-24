@@ -530,6 +530,136 @@ app.post('/api/admin/reseed', requireAdmin, async (req, res) => {
 });
 
 // =================================================================
+//  WAITLIST (pre-launch — referral + position tracking)
+// =================================================================
+
+// Generate a referral code: 8 chars, uppercase, avoids confusables
+function makeReferralCode(){
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0/O/1/I
+  let out = '';
+  const bytes = crypto.randomBytes(8);
+  for (const b of bytes) out += alphabet[b % alphabet.length];
+  return out;
+}
+
+app.get('/api/waitlist/count', async (req, res) => {
+  try {
+    const { rows } = await pool.query(`SELECT COUNT(*)::int AS total FROM waitlist`);
+    const total = rows[0].total;
+    res.json({ total, remainingFirst500: Math.max(0, 500 - total) });
+  } catch (e) { res.status(500).json({ error: 'server_error' }); }
+});
+
+app.post('/api/waitlist/join', async (req, res) => {
+  const schema = z.object({
+    email: z.string().email().max(200),
+    referral_code: z.string().regex(/^[A-Z0-9]{6,16}$/).optional(),
+    source: z.string().max(64).optional(),
+  });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: 'invalid_input' });
+  const email = sanitizeEmail(parsed.data.email);
+  const refByRaw = parsed.data.referral_code?.toUpperCase();
+
+  try {
+    // Already on list? Just return their status
+    const existing = await pool.query(
+      `SELECT position, referral_code, referrals_count FROM waitlist WHERE LOWER(email) = $1`, [email]);
+    if (existing.rows.length) {
+      const r = existing.rows[0];
+      const { rows: c } = await pool.query(`SELECT COUNT(*)::int AS total FROM waitlist`);
+      return res.json({
+        already: true, position: Number(r.position), referral_code: r.referral_code,
+        referrals_count: r.referrals_count, total: c[0].total,
+      });
+    }
+
+    // Validate referral code (if provided) is real
+    let referredByCode = null;
+    if (refByRaw) {
+      const ref = await pool.query(`SELECT referral_code FROM waitlist WHERE referral_code = $1`, [refByRaw]);
+      if (ref.rows.length) referredByCode = refByRaw;
+    }
+
+    // Generate a unique code (retry on rare collision)
+    let code = makeReferralCode();
+    for (let i = 0; i < 5; i++) {
+      const clash = await pool.query(`SELECT 1 FROM waitlist WHERE referral_code = $1`, [code]);
+      if (!clash.rows.length) break;
+      code = makeReferralCode();
+    }
+
+    const ins = await pool.query(
+      `INSERT INTO waitlist (email, referral_code, referred_by_code, source)
+       VALUES ($1, $2, $3, $4)
+       RETURNING position, referral_code, referrals_count`,
+      [email, code, referredByCode, parsed.data.source || null]);
+
+    // Bump the referrer's count
+    if (referredByCode) {
+      await pool.query(
+        `UPDATE waitlist SET referrals_count = referrals_count + 1 WHERE referral_code = $1`,
+        [referredByCode]);
+    }
+
+    const { rows: c } = await pool.query(`SELECT COUNT(*)::int AS total FROM waitlist`);
+
+    // Fire-and-forget welcome email (no-op if Resend not configured)
+    sendEmail(email, 'waitlist_welcome', {
+      position: Number(ins.rows[0].position),
+      referral_code: ins.rows[0].referral_code,
+      total: c[0].total,
+    }).catch(err => console.error('waitlist welcome email', err.message));
+
+    res.json({
+      already: false,
+      position: Number(ins.rows[0].position),
+      referral_code: ins.rows[0].referral_code,
+      referrals_count: 0,
+      total: c[0].total,
+    });
+  } catch (e) { console.error('waitlist/join', e); res.status(500).json({ error: 'server_error' }); }
+});
+
+app.get('/api/waitlist/status', async (req, res) => {
+  const code = String(req.query.code || '').toUpperCase();
+  if (!/^[A-Z0-9]{6,16}$/.test(code)) return res.status(400).json({ error: 'invalid_code' });
+  try {
+    const { rows } = await pool.query(
+      `SELECT email, position, referral_code, referrals_count, created_at
+         FROM waitlist WHERE referral_code = $1`, [code]);
+    if (!rows.length) return res.status(404).json({ error: 'not_found' });
+    const { rows: c } = await pool.query(`SELECT COUNT(*)::int AS total FROM waitlist`);
+    const r = rows[0];
+    res.json({
+      email: r.email, position: Number(r.position), referral_code: r.referral_code,
+      referrals_count: r.referrals_count, created_at: r.created_at, total: c[0].total,
+    });
+  } catch (e) { console.error('waitlist/status', e); res.status(500).json({ error: 'server_error' }); }
+});
+
+app.get('/api/admin/waitlist', requireAdmin, async (req, res) => {
+  try {
+    const { rows: stats } = await pool.query(`
+      SELECT COUNT(*)::int AS total,
+             COUNT(*) FILTER (WHERE created_at >= NOW() - INTERVAL '24 hours')::int AS last_24h,
+             COUNT(*) FILTER (WHERE created_at >= NOW() - INTERVAL '7 days')::int AS last_7d,
+             COUNT(DISTINCT referred_by_code) FILTER (WHERE referred_by_code IS NOT NULL)::int AS active_referrers
+        FROM waitlist`);
+    const { rows: top } = await pool.query(`
+      SELECT email, referral_code, referrals_count, position FROM waitlist
+       WHERE referrals_count > 0 ORDER BY referrals_count DESC LIMIT 20`);
+    const { rows: recent } = await pool.query(`
+      SELECT email, position, referral_code, referred_by_code, referrals_count, source, created_at
+        FROM waitlist ORDER BY created_at DESC LIMIT 100`);
+    const { rows: sources } = await pool.query(`
+      SELECT COALESCE(source,'organic') AS source, COUNT(*)::int AS n
+        FROM waitlist GROUP BY 1 ORDER BY n DESC`);
+    res.json({ stats: stats[0], top, recent, sources });
+  } catch (e) { console.error('admin/waitlist', e); res.status(500).json({ error: 'server_error' }); }
+});
+
+// =================================================================
 //  STRIPE (phase 3 — stubbed until keys are set)
 // =================================================================
 let stripe = null;
@@ -723,6 +853,16 @@ async function sendEmail(to, kind, data){
     payment_failed: () => ({
       subject: 'IGNITE — payment issue',
       html: `<h1>Your payment didn't go through</h1><p>No stress — update your card any time in <a href="${APP_URL}/app.html">Profile → Billing</a>.</p>`,
+    }),
+    waitlist_welcome: () => ({
+      subject: `You're on the list — spot #${data.position} 🔥`,
+      html: `<div style="font-family:-apple-system,sans-serif;max-width:540px;margin:0 auto;padding:24px;color:#111">
+        <h1 style="font-size:28px;letter-spacing:-.02em">You're in. 🔥</h1>
+        <p>You're <strong>#${data.position}</strong> on the IGNITE early-access list. <strong>The first 500 get 50% off their first year</strong> — move up the queue by sharing your referral link:</p>
+        <p style="background:#f5f5ff;padding:14px;border-radius:10px;font-family:monospace;word-break:break-all">${APP_URL}/?r=${data.referral_code}</p>
+        <p>Every friend who joins from your link bumps you up. Top sharers get first pick of coach-assigned plans at launch.</p>
+        <p>Thanks for being early.<br/>— The IGNITE team</p>
+      </div>`,
     }),
   };
   const tpl = templates[kind]?.();
